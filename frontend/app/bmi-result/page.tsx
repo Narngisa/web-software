@@ -9,24 +9,24 @@ function Page() {
       <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
       <p className='text-center'>แสดงหมู่อาหาร</p>
       <div>
-        <div className='flex space-x-4'>
-          <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
+        <div className='flex justify-center'>
+          <p className='border-1 border-red-500 px-16 py-8'></p>
           <p className='text-center'>โปรตีน</p>
         </div>
-        <div className='flex space-x-4'>
-          <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
+        <div className='flex justify-center'>
+          <p className='border-1 border-red-500 px-16 py-8'></p>
           <p className='text-center'>คาร์โบไฮเดต</p>
         </div>
-        <div className='flex space-x-4'>
-        <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
+        <div className='flex justify-center'>
+          <p className='border-1 border-red-500 px-16 py-8'></p>
           <p className='text-center'>เกลือแร่</p>
         </div>
-        <div className='flex space-x-4'>
-        <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
+        <div className='flex justify-center'>
+          <p className='border-1 border-red-500 px-16 py-8'></p>
           <p className='text-center'>วิตามิน</p>
         </div>
-        <div className='flex space-x-4'>
-        <p className='border-1 border-red-500 py-8 mx-[32rem]'></p>
+        <div className='flex justify-center'>
+          <p className='border-1 border-red-500 px-16 py-8'></p>
           <p className='text-center'>ไขมัน</p>
         </div>
       </div>
