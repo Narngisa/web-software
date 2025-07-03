@@ -51,35 +51,55 @@ export default function CameraCapture() {
   };
 
   return (
-    <div className="flex flex-col items-center p-6 space-y-4">
-      <video
-        ref={videoRef}
-        className="w-80 h-auto rounded-md border border-gray-300"
-        autoPlay
-        muted
-        playsInline
-      />
-      <button
-        onClick={capturePhoto}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        ถ่ายรูป
-      </button>
-      <button
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        อัพโหลด
-      </button>
+    <div className='text-amber-900'>
+      <div>
+        <nav>
+          <div className='flex justify-between items-center bg-[#FCF8E8] px-8 py-4'>
+            <h1 className='text-2xl font-semibold px-5'>Test</h1>
+            <ul className='flex space-x-4'>
+              <a href="">Home</a>
+              <a href="">Calorie</a>
+              <a href="">Exercise</a>
+              <a href="">Sign Up</a>
+            </ul>
+          </div>
+        </nav>
+      </div>
 
-      {captured && (
-        <div className="mt-4">
-          <p className="mb-2 font-semibold">รูปที่ถ่าย:</p>
-          <img src={captured} alt="Captured" className="w-80 rounded-md border" />
-        </div>
-      )}
+      <div>
+        <h1 className='text-3xl text-center mt-10'>กล้องถ่ายรูป</h1>
+        <p className='text-center mt-2'>กรุณาอนุญาตให้เข้าถึงกล้องเพื่อถ่ายรูป</p>
+      </div>
+      <div className="flex flex-col items-center p-6 space-y-4">
+        <video
+          ref={videoRef}
+          className="w-80 h-auto rounded-md border border-gray-300"
+          autoPlay
+          muted
+          playsInline
+        />
+        <button
+          onClick={capturePhoto}
+          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition"
+        >
+          ถ่ายรูป
+        </button>
+        <button
+          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition"
+        >
+          อัพโหลด
+        </button>
 
-      {/* ซ่อน canvas */}
-      <canvas ref={canvasRef} style={{ display: "none" }} />
+        {captured && (
+          <div className="mt-4">
+            <p className="mb-2 font-semibold">รูปที่ถ่าย:</p>
+            <img src={captured} alt="Captured" className="w-80 rounded-md border" />
+          </div>
+        )}
+
+        {/* ซ่อน canvas */}
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+      </div>
     </div>
   );
 }
