@@ -7,7 +7,8 @@ app = Flask(__name__)
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client['ND_db']
-collection = db['users']
+users = db['users']
+calories = db['calorie']
 
 @app.route('/')
 def index():
@@ -25,10 +26,10 @@ def signup():
     birthday = data.get('birthday')
     sex = data.get('sex')
 
-    if collection.find_one({'gmail': gmail}):
+    if users.find_one({'gmail': gmail}):
         return jsonify({'message': 'Gmail ถูกใช้ไปแล้ว'}), 409
     
-    if collection.find_one({'username': username}):
+    if users.find_one({'username': username}):
         return jsonify({'message': 'Username ถูกใช้ไปแล้ว'}), 409
     
     hash_password = generate_password_hash(password)
@@ -43,7 +44,7 @@ def signup():
         'sex': sex
     }
 
-    collection.insert_one(new_user)
+    users.insert_one(new_user)
 
     return jsonify({'message': 'SignUp is successfully'}), 201
 
@@ -53,7 +54,7 @@ def login():
     gmail = data.get('gmail')
     password = data.get('password')
 
-    user = collection.find_one({'gmail': gmail})
+    user = users.find_one({'gmail': gmail})
     if not user:
         return jsonify({'message': 'Invalid gmail or password'}), 401
 
@@ -81,7 +82,7 @@ def login():
 @app.route('/users', methods=['GET'])
 def get_all_users():
     users = []
-    for user in collection.find({}, {'password': 0}):
+    for user in users.find({}, {'password': 0}):
         user['_id'] = str(user['_id'])
         users.append(user)
     return jsonify(users), 200
@@ -93,7 +94,7 @@ def delete_user_by_id(user_id):
     except:
         return jsonify({'message': 'Invalid user ID'}), 400
     
-    result = collection.delete_one({'_id': object_id})
+    result = users.delete_one({'_id': object_id})
 
     if result.deleted_count == 0:
         return jsonify({'message': 'User not found'}), 404
@@ -122,21 +123,25 @@ def update_user_by_id(user_id):
         return jsonify({'message': 'No valid fields provided to update'}), 400
     
     if 'gmail' in update_fields:
-        existing = collection.find_one({'gmail': update_fields['gmail'], '_id': {'$ne': object_id}})
+        existing = users.find_one({'gmail': update_fields['gmail'], '_id': {'$ne': object_id}})
         if existing:
             return jsonify({'message': 'Gmail นี้ถูกใช้ไปแล้ว'}), 409
 
     if 'username' in update_fields:
-        existing = collection.find_one({'username': update_fields['username'], '_id': {'$ne': object_id}})
+        existing = users.find_one({'username': update_fields['username'], '_id': {'$ne': object_id}})
         if existing:
             return jsonify({'message': 'Username นี้ถูกใช้ไปแล้ว'}), 409
 
-    result = collection.update_one({'_id': object_id}, {'$set': update_fields})
+    result = users.update_one({'_id': object_id}, {'$set': update_fields})
 
     if result.matched_count == 0:
         return jsonify({'message': 'User not found'}), 404
 
     return jsonify({'message': 'User updated successfully'}), 200
+
+@app.route('/calorie', methods=['GET'])
+def calorie():
+    return "Hello World"
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
