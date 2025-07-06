@@ -57,15 +57,24 @@ def login():
     if not user:
         return jsonify({'message': 'Invalid gmail or password'}), 401
 
-    stored_hash = user['password']
-    if check_password_hash(stored_hash, password):
-        return jsonify({'message': 'Login successful'})
+    hash_password = user['password']
+    if check_password_hash(hash_password, password):
+        return jsonify({'message': 'Login successful',
+                'user': {
+                    'username': user.get('username'),
+                    'firstname': user.get('firstname'),
+                    'lastname': user.get('lastname'),
+                    'gmail': user.get('gmail'),
+                    'birthday': user.get('birthday'),
+                    'sex': user.get('sex')
+                }
+            }), 200
     else:
         return jsonify({
             'message': 'Invalid gmail or password',
             'debug': {
                 'input_password': repr(password),
-                'stored_hash': stored_hash
+                'stored_hash': hash_password
             }
         }), 401
 
