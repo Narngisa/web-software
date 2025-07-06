@@ -12,7 +12,7 @@ function Page() {
   const [sex, setSex] = useState("");
 
   return (
-    <div className="grid place-items-center h-screen bg-[#FCF8E8]">
+    <div className="grid place-items-center h-full bg-[#FCF8E8] py-16">
       <div className="shadow-lg p-5 rounded-lg border-t-4 bg-[#faf7ed] border-amber-900">
         <h1 className="text-xl font-bold my-4 text-amber-900">Sign up</h1>
         <form className="flex flex-col gap-3 w-[25rem] text-amber-900">
