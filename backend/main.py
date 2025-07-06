@@ -28,6 +28,9 @@ def signup():
     if collection.find_one({'gmail': gmail}):
         return jsonify({'message': 'Gmail ถูกใช้ไปแล้ว'}), 409
     
+    if collection.find_one({'username': username}):
+        return jsonify({'message': 'Username ถูกใช้ไปแล้ว'}), 409
+    
     hash_password = generate_password_hash(password)
 
     new_user = {
@@ -47,23 +50,24 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
+    gmail = data.get('gmail')
     password = data.get('password')
 
-    user = collection.find_one({'username': username})
-    if user and check_password_hash(user['password'], password):
+    user = collection.find_one({'gmail': gmail})
+    if not user:
+        return jsonify({'message': 'Invalid gmail or password'}), 401
+
+    stored_hash = user['password']
+    if check_password_hash(stored_hash, password):
+        return jsonify({'message': 'Login successful'})
+    else:
         return jsonify({
-            'message': 'Login successful',
-            'user': {
-                'username': user['username'],
-                'firstname': user.get('firstname'),
-                'lastname': user.get('lastname'),
-                'gmail': user.get('gmail'),
-                'birthday': user.get('birthday'),
-                'sex': user.get('sex')
+            'message': 'Invalid gmail or password',
+            'debug': {
+                'input_password': repr(password),
+                'stored_hash': stored_hash
             }
-        }), 200
-    return jsonify({'message': 'Invalid username or password'}), 401
+        }), 401
 
 @app.route('/users', methods=['GET'])
 def get_all_users():
@@ -107,6 +111,16 @@ def update_user_by_id(user_id):
 
     if not update_fields:
         return jsonify({'message': 'No valid fields provided to update'}), 400
+    
+    if 'gmail' in update_fields:
+        existing = collection.find_one({'gmail': update_fields['gmail'], '_id': {'$ne': object_id}})
+        if existing:
+            return jsonify({'message': 'Gmail นี้ถูกใช้ไปแล้ว'}), 409
+
+    if 'username' in update_fields:
+        existing = collection.find_one({'username': update_fields['username'], '_id': {'$ne': object_id}})
+        if existing:
+            return jsonify({'message': 'Username นี้ถูกใช้ไปแล้ว'}), 409
 
     result = collection.update_one({'_id': object_id}, {'$set': update_fields})
 

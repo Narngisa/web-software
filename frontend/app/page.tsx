@@ -51,10 +51,10 @@ export default function CameraCapture() {
   };
 
   return (
-    <div className='text-amber-900'>
+    <div className='text-[#124a28]'>
       <div>
         <nav>
-          <div className='flex justify-between items-center bg-[#FCF8E8] px-8 py-4'>
+          <div className='flex justify-between items-center bg-[#a1ffec] px-8 py-4'>
             <h1 className='text-2xl font-semibold px-5'>Test</h1>
             <ul className='flex space-x-4'>
               <a href="">Home</a>
@@ -80,12 +80,12 @@ export default function CameraCapture() {
         />
         <button
           onClick={capturePhoto}
-          className="px-4 py-2 bg-[#abffe2] rounded hover:bg-[#e4e0d2] transition flex flex-col space-y-4 mt-4"
-        >
+          className="px-4 py-2 bg-[#a1ffec] rounded hover:bg-[#3ab59c] transition flex flex-col space-y-4 mt-4"
+        >       
           ถ่ายรูป
         </button>
         <button
-          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition flex flex-col space-y-4 mt-4"
+          className="px-4 py-2 bg-[#a1ffec] rounded hover:bg-[#3ab59c] transition"
         >
           อัพโหลด
         </button>
