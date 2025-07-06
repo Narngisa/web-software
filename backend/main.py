@@ -13,7 +13,7 @@ collection = db['users']
 def index():
     return "Hello World!!"
 
-@app.route('/signup')
+@app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
 
@@ -41,6 +41,7 @@ def signup():
     }
 
     collection.insert_one(new_user)
+
     return jsonify({'message': 'SignUp is successfully'}), 201
 
 @app.route('/login', methods=['POST'])
@@ -66,8 +67,11 @@ def login():
 
 @app.route('/users', methods=['GET'])
 def get_all_users():
-    all_users = collection.find({}, {'_id': 0, 'password': 0})
-    return jsonify(list(all_users)), 200
+    users = []
+    for user in collection.find({}, {'password': 0}):
+        user['_id'] = str(user['_id'])
+        users.append(user)
+    return jsonify(users), 200
 
 @app.route('/delete/<user_id>', methods=['DELETE'])
 def delete_user_by_id(user_id):
@@ -75,13 +79,41 @@ def delete_user_by_id(user_id):
         object_id = ObjectId(user_id)
     except:
         return jsonify({'message': 'Invalid user ID'}), 400
-
+    
     result = collection.delete_one({'_id': object_id})
 
     if result.deleted_count == 0:
         return jsonify({'message': 'User not found'}), 404
-
     return jsonify({'message': 'User deleted successfully'}), 200
+
+@app.route('/update/<user_id>', methods=['PUT'])
+def update_user_by_id(user_id):
+    try:
+        object_id = ObjectId(user_id)
+    except:
+        return jsonify({'message': 'Invalid user ID'}), 400
+
+    data = request.get_json()
+    update_fields = {}
+
+    allowed_fields = ['username', 'firstname', 'lastname', 'gmail', 'birthday', 'sex', 'password']
+
+    for field in allowed_fields:
+        if field in data:
+            if field == 'password':
+                update_fields['password'] = generate_password_hash(data['password'])
+            else:
+                update_fields[field] = data[field]
+
+    if not update_fields:
+        return jsonify({'message': 'No valid fields provided to update'}), 400
+
+    result = collection.update_one({'_id': object_id}, {'$set': update_fields})
+
+    if result.matched_count == 0:
+        return jsonify({'message': 'User not found'}), 404
+
+    return jsonify({'message': 'User updated successfully'}), 200
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)

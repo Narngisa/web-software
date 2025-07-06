@@ -70,22 +70,22 @@ export default function CameraCapture() {
         <h1 className='text-3xl text-center mt-10'>กล้องถ่ายรูป</h1>
         <p className='text-center mt-2'>กรุณาอนุญาตให้เข้าถึงกล้องเพื่อถ่ายรูป</p>
       </div>
-      <div className="flex flex-col items-center p-16 space-y-1">
+      <div className="flex flex-col items-center p-3 space-y-1">
         <video
           ref={videoRef}
-          className="py-16 w-80 h-auto rounded-md border border-gray-300"
+          className="p-16 w-80 h-auto rounded-md border border-gray-300"
           autoPlay
           muted
           playsInline
         />
         <button
           onClick={capturePhoto}
-          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition"
+          className="px-4 py-2 bg-[#abffe2] rounded hover:bg-[#e4e0d2] transition flex flex-col space-y-4 mt-4"
         >
           ถ่ายรูป
         </button>
         <button
-          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition"
+          className="px-4 py-2 bg-[#FCF8E8] rounded hover:bg-[#e4e0d2] transition flex flex-col space-y-4 mt-4"
         >
           อัพโหลด
         </button>
