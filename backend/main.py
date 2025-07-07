@@ -1,9 +1,14 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
+from flask_cors import CORS
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+CORS(app, 
+     origins=["http://localhost:5173"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type"])
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client['ND_db']
@@ -16,6 +21,7 @@ def index():
 
 @app.route('/signup', methods=['POST'])
 def signup():
+    
     data = request.get_json()
 
     username = data.get('username')
