@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function Login() {
 
-    const [email, setEmail] = useState("");
+    const [gmail, setGmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
@@ -16,11 +16,11 @@ function Login() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ gmail: email, password }), // 👈 ต้องใช้ gmail ตาม backend
+                body: JSON.stringify({ gmail, password }),
             });
 
             const result = await response.json();
-            console.log("Response from Flask:", result);
+            console.log("Response :", result);
 
             if (response.ok) {
                 navigate("/home");
@@ -28,7 +28,7 @@ function Login() {
                 alert(result.message || "Login failed");
             }
         } catch (error) {
-            console.error("Error sending data to Flask:", error);
+            console.error("Error", error);
             alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
         }
     };
@@ -41,9 +41,9 @@ function Login() {
             <form onSubmit={handleSubmit}>
                 <span>Gmail</span>
                 <input
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setGmail(e.target.value)}
                     type="email"
-                    value={email}
+                    value={gmail}
                     placeholder="กรุณากรอก Gmail"
                 />
                 <span>Password</span>

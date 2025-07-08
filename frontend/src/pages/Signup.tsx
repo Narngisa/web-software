@@ -3,7 +3,7 @@ import { useState } from "react";
 function Login() {
 
     const [username, setUsername] = useState("");
-    const [gmail, setgmail] = useState("");
+    const [gmail, setGmail] = useState("");
     const [password, setPassword] = useState("");
     const [firstname, setFirstname] = useState("");
     const [lastname, setLastname] = useState("");
@@ -31,9 +31,9 @@ function Login() {
             });
 
             const result = await response.json();
-            console.log("Response from Flask:", result);
+            console.log("Response :", result);
         } catch (error) {
-            console.error("Error sending data to Flask:", error);
+            console.error("Error", error);
         }
         };
 
@@ -52,7 +52,7 @@ function Login() {
                 />
                 <span>gmail</span>
                 <input
-                    onChange={(e) => setgmail(e.target.value)}
+                    onChange={(e) => setGmail(e.target.value)}
                     type="gmail"
                     value={gmail}
                     placeholder="กรุณากรอกอีเมล"
