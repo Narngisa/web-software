@@ -19,7 +19,7 @@ calories = db['calorie']
 def index():
     return "Hello World!!"
 
-@app.route('/api/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
     
     data = request.get_json()
@@ -54,7 +54,7 @@ def signup():
 
     return jsonify({'message': 'SignUp is successfully'}), 201
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     gmail = data.get('gmail')
@@ -85,18 +85,15 @@ def login():
             }
         }), 401
 
-@app.route('/api/users', methods=['GET'])
+@app.route('/users', methods=['GET'])
 def get_all_users():
     users = []
-    try:
-        for user in users.find({}, {'password': 0}):
-            user['_id'] = str(user['_id'])
-            users.append(user)
-        return jsonify(users), 200
-    except:
-        return []
+    for user in users.find({}, {'password': 0}):
+        user['_id'] = str(user['_id'])
+        users.append(user)
+    return jsonify(users), 200
 
-@app.route('/api/delete/<user_id>', methods=['DELETE'])
+@app.route('/delete/<user_id>', methods=['DELETE'])
 def delete_user_by_id(user_id):
     try:
         object_id = ObjectId(user_id)
@@ -109,7 +106,7 @@ def delete_user_by_id(user_id):
         return jsonify({'message': 'User not found'}), 404
     return jsonify({'message': 'User deleted successfully'}), 200
 
-@app.route('/api/update/<user_id>', methods=['PUT'])
+@app.route('/update/<user_id>', methods=['PUT'])
 def update_user_by_id(user_id):
     try:
         object_id = ObjectId(user_id)
@@ -148,7 +145,7 @@ def update_user_by_id(user_id):
 
     return jsonify({'message': 'User updated successfully'}), 200
 
-@app.route('/api/calorie', methods=['GET'])
+@app.route('/calorie', methods=['GET'])
 def calorie():
     return "Hello World"
 
