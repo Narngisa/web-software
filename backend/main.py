@@ -5,10 +5,14 @@ from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-CORS(app, 
-     origins=["http://localhost:5173"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type"])
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS,PUT,DELETE')
+    return response
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client['ND_db']
@@ -19,9 +23,9 @@ calories = db['calorie']
 def index():
     return "Hello World!!"
 
-@app.route('/signup', methods=['POST'])
+@app.route('/api/signup', methods=['POST'])
 def signup():
-    
+
     data = request.get_json()
 
     username = data.get('username')
@@ -34,10 +38,10 @@ def signup():
 
     if users.find_one({'gmail': gmail}):
         return jsonify({'message': 'Gmail ถูกใช้ไปแล้ว'}), 409
-    
+
     if users.find_one({'username': username}):
         return jsonify({'message': 'Username ถูกใช้ไปแล้ว'}), 409
-    
+
     hash_password = generate_password_hash(password)
 
     new_user = {
