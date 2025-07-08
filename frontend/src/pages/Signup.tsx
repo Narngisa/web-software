@@ -3,7 +3,7 @@ import { useState } from "react";
 function Login() {
 
     const [username, setUsername] = useState("");
-    const [gmail, setGmail] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [firstname, setFirstname] = useState("");
     const [lastname, setLastname] = useState("");
@@ -21,7 +21,7 @@ function Login() {
             },
             body: JSON.stringify({
                 username,
-                gmail, 
+                email, 
                 password,
                 firstname,
                 lastname,
@@ -50,11 +50,11 @@ function Login() {
                     value={username}
                     placeholder="กรุณากรอกอีเมล"
                 />
-                <span>gmail</span>
+                <span>email</span>
                 <input
-                    onChange={(e) => setGmail(e.target.value)}
-                    type="gmail"
-                    value={gmail}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    value={email}
                     placeholder="กรุณากรอกอีเมล"
                 />
                 <span>Password</span>
@@ -92,7 +92,7 @@ function Login() {
                     value={sex}
                     placeholder="กรุณากรอกเพศ (เพศตามสภาพโดยแต่กำเนิด)"
                 />
-                <button className="text-white font-bold cursor-pointer px-6 py-2 rounded-lg">Submit</button>
+                <button type="submit" className="text-white font-bold cursor-pointer px-6 py-2 rounded-lg">Submit</button>
             </form>
         </div>
     )

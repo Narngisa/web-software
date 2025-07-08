@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function Login() {
 
-    const [gmail, setGmail] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
@@ -13,25 +13,25 @@ function Login() {
         try {
             const response = await fetch("http://localhost:8080/api/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ gmail, password }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ gmail: email, password }),
             });
 
-            const result = await response.json();
-            console.log("Response :", result);
-
-            if (response.ok) {
-                navigate("/home");
-            } else {
-                alert(result.message || "Login failed");
+            if (!response.ok) {
+                const errorResult = await response.json();
+                alert(errorResult.message || "Login failed");
+                return;
             }
+
+            const result = await response.json();
+            console.log("Response:", result);
+            navigate("/");
+
         } catch (error) {
             console.error("Error", error);
             alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
         }
-    };
+    }
 
     return (
         <div>
@@ -39,12 +39,12 @@ function Login() {
                 <h1>Login</h1>
             </div>
             <form onSubmit={handleSubmit}>
-                <span>Gmail</span>
+                <span>email</span>
                 <input
-                    onChange={(e) => setGmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                     type="email"
-                    value={gmail}
-                    placeholder="กรุณากรอก Gmail"
+                    value={email}
+                    placeholder="กรุณากรอก email"
                 />
                 <span>Password</span>
                 <input
@@ -53,7 +53,7 @@ function Login() {
                     value={password}
                     placeholder="กรุณากรอก Password"
                 />
-                <button className="text-white font-bold cursor-pointer px-6 py-2 rounded-lg">Submit</button>
+                <button type="submit" className="text-white font-bold cursor-pointer px-6 py-2 rounded-lg">Submit</button>
             </form>
         </div>
     )

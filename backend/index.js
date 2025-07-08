@@ -97,14 +97,6 @@ app.post("/api/login", async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user: {
-        username: user.username,
-        gmail: user.gmail,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        birthday: user.birthday,
-        sex: user.sex
-      }
     });
 
   } catch (error) {
