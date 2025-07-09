@@ -28,15 +28,15 @@ app.get("/", (req, res) => {
 
 app.post("/api/signup", async (req, res) => {
     try {
-        const { username, gmail, password, firstname, lastname, birthday, sex } = req.body;
+        const { username, email, password, firstname, lastname, birthday, sex } = req.body;
 
         // Basic validation
-        if (!username || !gmail || !password || !firstname || !lastname || !birthday || !sex) {
+        if (!username || !email || !password || !firstname || !lastname || !birthday || !sex) {
             return res.status(400).json({ error: "All fields are required." });
         }
 
         // Check if user already exists
-        const existingUser = await User.findOne({ $or: [{ username }, { gmail }] });
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
             return res.status(409).json({ error: "Username or email already in use." });
         }
@@ -48,7 +48,7 @@ app.post("/api/signup", async (req, res) => {
         // Create new user
         const newUser = new User({
             username,
-            gmail,
+            email,
             password: hashedPassword,
             firstname,
             lastname,
@@ -67,15 +67,15 @@ app.post("/api/signup", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   try {
-    const { gmail, password } = req.body;
+    const { email, password } = req.body;
 
     // ตรวจสอบว่าใส่ครบหรือยัง
-    if (!gmail || !password) {
+    if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required." });
     }
 
-    // ค้นหาผู้ใช้จาก gmail
-    const user = await User.findOne({ gmail });
+    // ค้นหาผู้ใช้จาก email
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password." });
     }

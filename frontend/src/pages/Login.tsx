@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -19,44 +20,61 @@ function Login() {
 
             if (!response.ok) {
                 const errorResult = await response.json();
-                alert(errorResult.message || "Login failed");
+                setErrorMessage(errorResult.message || "Email หรือ Password ไม่ถูกต้อง");
                 return;
             }
 
             const result = await response.json();
             console.log("Response:", result);
-            navigate("/");
+            setErrorMessage("");
+
+            // ✅ เก็บ token
+            localStorage.setItem("authToken", result.token);
+
+            // ✅ ไปหน้าแรก
+            navigate("/logout");
 
         } catch (error) {
             console.error("Error", error);
-            alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+            setErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
         }
     }
 
     return (
-        <div>
-            <div>
-                <h1>Login</h1>
+        <div className="bg-[#acdfac]">
+            <div className="grid place-items-center h-screen text-[#72bb72]">
+                <div className="bg-white rounded-lg p-16">
+                    <h1 className="text-3xl font-bold">Login</h1>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-[25rem] mt-10">
+                        <span className="font-semibold">Email</span>
+                        <input
+                            onChange={(e) => setEmail(e.target.value)}
+                            type="email"
+                            value={email}
+                            placeholder="กรุณากรอก email"
+                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                        />
+                        <span className="font-semibold">Password</span>
+                        <input
+                            onChange={(e) => setPassword(e.target.value)}
+                            type="password"
+                            value={password}
+                            placeholder="กรุณากรอก Password"
+                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                        />
+
+                        {errorMessage && (
+                            <div className="text-red-500 font-semibold text-sm w-[16rem]">
+                                {errorMessage}
+                            </div>
+                        )}
+
+                        <button type="submit" className="font-bold rounded-lg bg-[#72bb72] text-white w-[6rem] p-3 transform transition-transform duration-300 hover:scale-105">ตกลง</button>
+                    </form>
+                </div>
             </div>
-            <form onSubmit={handleSubmit}>
-                <span>email</span>
-                <input
-                    onChange={(e) => setEmail(e.target.value)}
-                    type="email"
-                    value={email}
-                    placeholder="กรุณากรอก email"
-                />
-                <span>Password</span>
-                <input
-                    onChange={(e) => setPassword(e.target.value)}
-                    type="password"
-                    value={password}
-                    placeholder="กรุณากรอก Password"
-                />
-                <button type="submit" className="text-white font-bold cursor-pointer px-6 py-2 rounded-lg">Submit</button>
-            </form>
         </div>
-    )
+    );
 }
 
-export default Login
+export default Login;
