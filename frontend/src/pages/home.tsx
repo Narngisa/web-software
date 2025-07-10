@@ -9,12 +9,10 @@ function Home() {
   const [model, setModel] = useState<tf.LayersModel | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
 
-  // กล้อง
   const [webcamResult, setWebcamResult] = useState<string | null>(null);
   const [webcamConfidence, setWebcamConfidence] = useState<number | null>(null);
   const [webcamLoading, setWebcamLoading] = useState<boolean>(false);
 
-  // อัปโหลดภาพ
   const [uploadResult, setUploadResult] = useState<string | null>(null);
   const [uploadConfidence, setUploadConfidence] = useState<number | null>(null);
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
@@ -27,16 +25,13 @@ function Home() {
         setModel(loadedModel);
         setLabels(metadata.labels || []);
       } catch (e) {
-        console.error('❌ โหลดโมเดลไม่สำเร็จ:', e);
+        console.error(e);
       }
     };
     loadModel();
   }, []);
 
-  const classifyImage = async (
-    image: tf.Tensor3D,
-    isFromWebcam = false
-  ) => {
+  const classifyImage = async (image: tf.Tensor3D, isFromWebcam = false) => {
     if (!model || labels.length === 0) return;
 
     if (isFromWebcam) setWebcamLoading(true);
@@ -60,7 +55,7 @@ function Home() {
 
       tf.dispose([resized, normalized, prediction]);
     } catch (err) {
-      console.error('❌ พยากรณ์ล้มเหลว:', err);
+      console.error(err);
     } finally {
       if (isFromWebcam) setWebcamLoading(false);
       else setUploadLoading(false);
@@ -101,34 +96,31 @@ function Home() {
 
   return (
     <div className="bg-[#ff7b00] min-h-screen text-center text-white">
-      <nav className="flex justify-between items-center p-8 bg-[#991b1b]">
+      <nav className="flex justify-between items-center p-6 bg-[#991b1b]">
         <div>
-          <span className="text-4xl font-bold">Eat </span>
-          <span className="text-2xl font-bold">แหลก</span>
+          <span className="text-3xl sm:text-4xl font-bold">Eat </span>
+          <span className="text-xl sm:text-2xl font-bold">แหลก</span>
         </div>
-        <ul className="flex space-x-4 font-semibold">
+        <ul className="flex space-x-4 font-semibold text-sm sm:text-base">
           <a href="/signup">ลงชื่อเข้าใช้งาน</a>
         </ul>
       </nav>
 
       {/* กล้อง */}
-      <div className="py-6">
-        <h2 className="text-2xl font-bold mb-4">📷 ตรวจจับจากกล้อง</h2>
+      <section className="py-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">📷 ตรวจจับจากกล้อง</h2>
         <Webcam
           ref={webcamRef}
           audio={false}
           screenshotFormat="image/jpeg"
-          width={400}
-          height={300}
-          className="rounded-md shadow-md mx-auto"
+          className="rounded-md shadow-md mx-auto w-full max-w-sm sm:max-w-md"
         />
-
-        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-80 shadow-lg min-h-[120px]">
+        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-full max-w-xs sm:max-w-sm shadow-lg min-h-[120px]">
           {webcamLoading ? (
             <p className="text-gray-500">กำลังประมวลผล...</p>
           ) : webcamResult ? (
             <>
-              <p className="text-2xl text-green-700 font-semibold">
+              <p className="text-xl sm:text-2xl text-green-700 font-semibold">
                 {webcamResult} ({(webcamConfidence! * 100).toFixed(1)}%)
               </p>
               {foodInfo[webcamResult] && (
@@ -139,11 +131,11 @@ function Home() {
             <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* อัปโหลด */}
-      <div className="py-6">
-        <h2 className="text-2xl font-bold mb-4">🖼 ตรวจจับจากภาพอัปโหลด</h2>
+      {/* อัปโหลดภาพ */}
+      <section className="py-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">🖼 ตรวจจับจากภาพอัปโหลด</h2>
         <input
           type="file"
           accept="image/*"
@@ -152,18 +144,18 @@ function Home() {
           className="hidden"
         />
         <button
-          className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200"
+          className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200 w-full max-w-xs sm:w-auto"
           onClick={() => fileInputRef.current?.click()}
         >
           📤 อัปโหลดภาพอาหาร
         </button>
 
-        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-80 shadow-lg min-h-[120px]">
+        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-full max-w-xs sm:max-w-sm shadow-lg min-h-[120px]">
           {uploadLoading ? (
             <p className="text-gray-500">กำลังประมวลผล...</p>
           ) : uploadResult ? (
             <>
-              <p className="text-2xl text-green-700 font-semibold">
+              <p className="text-xl sm:text-2xl text-green-700 font-semibold">
                 {uploadResult} ({(uploadConfidence! * 100).toFixed(1)}%)
               </p>
               {foodInfo[uploadResult] && (
@@ -174,7 +166,7 @@ function Home() {
             <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
