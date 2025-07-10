@@ -13,7 +13,7 @@ function Home() {
   };
 
   return (
-    <div className='bg-[#ff7b00]'>
+    <div className='bg-[#ff7b00] h-screen'>
         <nav className='flex justify-between items-center p-8 bg-[#991b1b] text-white'>
             <div>
                 <span className='text-4xl font-bold'>Eat </span>
@@ -26,20 +26,15 @@ function Home() {
                 <a href="">ลงชื่อเข้าใช้งาน</a>
             </ul>
         </nav>
-        <h2>กล้องเว็บแคม</h2>
-        <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            width={420}
-            height={340}
-        />
-        <br />
+        <div className='flex justify-center items-center py-4'>
+          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={420} height={340} className='mt-5'/>
+        </div>
         <button onClick={capture}>ถ่ายรูป</button>
         {image && (
             <div>
-            <h3>รูปที่ถ่าย:</h3>
-            <img src={image} alt="ถ่ายจากกล้อง" />
+              <button>รูปที่ถ่าย:</button>
+              <button>รูปที่ถ่าย:</button>
+              <img src={image} alt="ถ่ายจากกล้อง" />
             </div>
         )}
     </div>
