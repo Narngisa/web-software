@@ -79,14 +79,14 @@ function Signup() {
         <div className="bg-[#991b1b]">
             <div className="grid place-items-center h-screen text-black">
                 <div className="bg-white rounded-lg p-16">
-                    <h1 className="text-3xl font-bold">Signup</h1>
+                    <h1 className="text-3xl font-bold">Sign Up</h1>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-[25rem] mt-10">
                         <label className="font-semibold">Username</label>
                         <input
                             onChange={(e) => setUsername(e.target.value)}
                             type="text"
                             value={username}
-                            placeholder="กรุณากรอกอีเมล"
+                            placeholder="กรุณากรอกชื่อผู้ใช้"
                             className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none"
                         />
                         <label className="font-semibold">email</label>
@@ -147,7 +147,7 @@ function Signup() {
                             <p>คุณมีบัญชีอยู่แล้ว ?<a className="px-2 text-[#991b1b] underline" href="/login">Login</a></p>
                         </div>
 
-                        <button type="submit" className="font-bold rounded-lg bg-[#ff7b00] text-white w-[6rem] p-3 transform transition-transform duration-300 hover:scale-105">ตกลง</button>
+                        <button type="submit" className="font-bold rounded-lg bg-[#ff7b00] text-white w-[8rem] p-3 transform transition-transform duration-300 hover:scale-105">สร้างบัญชี</button>
                     </form>
                 </div>
             </div>
