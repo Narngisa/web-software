@@ -41,26 +41,26 @@ function Login() {
     }
 
     return (
-        <div className="bg-[#acdfac]">
-            <div className="grid place-items-center h-screen text-[#72bb72]">
+        <div className="bg-[#991b1b]">
+            <div className="grid place-items-center h-screen text-black">
                 <div className="bg-white rounded-lg p-16">
                     <h1 className="text-3xl font-bold">Login</h1>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-[25rem] mt-10">
-                        <span className="font-semibold">Email</span>
+                        <label className="font-semibold">Email</label>
                         <input
                             onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             value={email}
                             placeholder="กรุณากรอก email"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none"
                         />
-                        <span className="font-semibold">Password</span>
+                        <label className="font-semibold">Password</label>
                         <input
                             onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             value={password}
                             placeholder="กรุณากรอก Password"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none"
                         />
 
                         {errorMessage && (
@@ -69,7 +69,11 @@ function Login() {
                             </div>
                         )}
 
-                        <button type="submit" className="font-bold rounded-lg bg-[#72bb72] text-white w-[6rem] p-3 transform transition-transform duration-300 hover:scale-105">ตกลง</button>
+                        <div className="font-semibold">
+                            <p>คุณยังไม่มีบัญชี ?<a className="px-2 text-[#991b1b] underline" href="/signup">SignUp</a></p>
+                        </div>
+
+                        <button type="submit" className="font-bold rounded-lg bg-[#ff7b00] text-white w-[6rem] p-3 transform transition-transform duration-300 hover:scale-105">ตกลง</button>
                     </form>
                 </div>
             </div>

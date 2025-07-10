@@ -26,7 +26,6 @@ function Home() {
         const metadata = await fetch('/model/metadata.json').then(res => res.json());
         setModel(loadedModel);
         setLabels(metadata.labels || []);
-        console.log('✅ โหลดโมเดลสำเร็จ');
       } catch (e) {
         console.error('❌ โหลดโมเดลไม่สำเร็จ:', e);
       }
@@ -108,7 +107,7 @@ function Home() {
           <span className="text-2xl font-bold">แหลก</span>
         </div>
         <ul className="flex space-x-4 font-semibold">
-          <a href="#">ลงชื่อเข้าใช้งาน</a>
+          <a href="/signup">ลงชื่อเข้าใช้งาน</a>
         </ul>
       </nav>
 
