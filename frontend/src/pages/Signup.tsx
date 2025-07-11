@@ -67,7 +67,7 @@ function Signup() {
 
             console.log("Response:", result);
             setErrorMessage("");
-            navigate("/logout");
+            navigate("/login");
 
         } catch (error) {
             console.error("Error", error);

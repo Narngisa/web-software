@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/login";
 import Signup from "../pages/signup"
 import Logout from "../pages/logout";
@@ -9,6 +9,8 @@ const AppRouter = () => {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/logout" element={<Logout />} />

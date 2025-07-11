@@ -15,7 +15,7 @@ function Login() {
       const response = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -28,8 +28,8 @@ function Login() {
       console.log("Response:", result);
       setErrorMessage("");
 
-      localStorage.setItem("authToken", result.token);
-      navigate("/logout");
+      localStorage.setItem("authToken", result.TOKEN);
+      navigate("/home");
     } catch (error) {
       console.error("Error", error);
       setErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");

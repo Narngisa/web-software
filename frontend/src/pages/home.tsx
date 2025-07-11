@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
+import { useNavigate } from "react-router-dom";
 import { foodInfo } from '../data/foodInfo';
 
 function Home() {
@@ -16,6 +17,10 @@ function Home() {
   const [uploadResult, setUploadResult] = useState<string | null>(null);
   const [uploadConfidence, setUploadConfidence] = useState<number | null>(null);
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const toggleDropdown = () => setShowDropdown(prev => !prev);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -29,6 +34,33 @@ function Home() {
       }
     };
     loadModel();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+      setIsLoggedIn(true);
+
+      fetch("http://localhost:8080/api/user", { // ใส่ URL เต็มด้วยนะ
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch user info");
+          return res.json();
+        })
+        .then(data => setUserInfo(data))
+        .catch(err => {
+          console.error(err);
+          setUserInfo(null);
+          setIsLoggedIn(false);
+        });
+    } else {
+      setIsLoggedIn(false);
+      setUserInfo(null);
+    }
   }, []);
 
   const classifyImage = async (image: tf.Tensor3D, isFromWebcam = false) => {
@@ -94,6 +126,13 @@ function Home() {
     tf.dispose(imgTensor);
   };
 
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+      localStorage.removeItem("authToken");
+      navigate("/login");
+  };
+
   return (
     <div className="bg-[#ff7b00] min-h-screen text-center text-white">
       <nav className="flex justify-between items-center p-6 bg-[#991b1b]">
@@ -101,20 +140,49 @@ function Home() {
           <span className="text-3xl sm:text-4xl font-bold">Eat </span>
           <span className="text-xl sm:text-2xl font-bold">แหลก</span>
         </div>
-        <ul className="flex space-x-4 font-semibold text-sm sm:text-base">
-          <a href="/signup">ลงชื่อเข้าใช้งาน</a>
-        </ul>
+        <ul className="relative flex items-center space-x-4 font-semibold text-sm sm:text-base">
+        {isLoggedIn && userInfo ? (
+          <li className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="text-sm sm:text-base text-white px-4 py-2 focus:outline-none"
+            >
+              สวัสดี, {userInfo.firstname} {userInfo.lastname}
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50">
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 focus:outline-none"
+                >
+                  ลงชื่อออก
+                </button>
+              </div>
+            )}
+          </li>
+        ) : (
+          <li>
+            <a href="/signup" className="bg-white px-4 py-2 rounded-lg text-black hover:bg-gray-200">
+              ลงชื่อเข้าใช้งาน
+            </a>
+          </li>
+        )}
+      </ul>
       </nav>
 
       {/* กล้อง */}
       <section className="py-6">
         <h2 className="text-xl sm:text-2xl font-bold mb-4">📷 ตรวจจับจากกล้อง</h2>
-        <Webcam
-          ref={webcamRef}
-          audio={false}
-          screenshotFormat="image/jpeg"
-          className="rounded-md shadow-md mx-auto w-full max-w-sm sm:max-w-md"
-        />
+        <div className="w-full flex justify-center px-4">
+          <Webcam
+            ref={webcamRef}
+            audio={false}
+            screenshotFormat="image/jpeg"
+            className="rounded-md shadow-md w-full max-w-xs sm:max-w-md md:max-w-lg aspect-[4/3]"
+            style={{ maxWidth: "80%" }}
+          />
+        </div>
         <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-full max-w-xs sm:max-w-sm shadow-lg min-h-[120px]">
           {webcamLoading ? (
             <p className="text-gray-500">กำลังประมวลผล...</p>
@@ -144,7 +212,7 @@ function Home() {
           className="hidden"
         />
         <button
-          className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200 w-full max-w-xs sm:w-auto"
+          className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200 w-full max-w-xs sm:w-auto focus:outline-none"
           onClick={() => fileInputRef.current?.click()}
         >
           📤 อัปโหลดภาพอาหาร
