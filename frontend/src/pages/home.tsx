@@ -134,7 +134,7 @@ function Home() {
   }, [navigate]);
 
   const handleGoToProfile = () => {
-    navigate('/profile');
+    navigate('/edit-profile');
   };
 
   // Toggle dropdown
@@ -163,7 +163,7 @@ function Home() {
                     onClick={handleGoToProfile}
                     className="block w-full text-left px-4 py-2 text-sm rounded-lg text-black hover:bg-gray-100 focus:outline-none"
                   >
-                    ข้อมูลผู้ใช้
+                    แก้ไขข้อมูลผู้ใช้
                   </button>
                   <button
                     onClick={handleLogout}
