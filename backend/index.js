@@ -49,21 +49,6 @@ app.get("/api/user", authenticateToken, async (req, res) => {
   }
 });
 
-app.get("/api/user", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    if (!userId) return res.status(400).json({ error: "User ID missing in token" });
-
-    const user = await User.findById(userId).select("-password");
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 app.post("/api/signup", async (req, res) => {
     try {
         const { username, email, password, firstname, lastname, birthday, sex } = req.body;
@@ -140,5 +125,66 @@ app.post("/api/login", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error." });
+  }
+});
+
+app.put("/api/user/:id", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // ตรวจสอบว่า id ใน token ตรงกับ id ที่ส่งมา
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ error: "Unauthorized to update this user" });
+    }
+
+    const { username, email, password, firstname, lastname, birthday, sex } = req.body;
+
+    // อัปเดตข้อมูล
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username, email, password, firstname, lastname, birthday, sex },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Update user error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.put("/api/user/:id/password", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { oldPassword, newPassword } = req.body;
+
+    // เช็ค userId ใน token กับ param id ต้องตรงกัน
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ error: "Unauthorized to change password" });
+    }
+
+    // หา user
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // ตรวจสอบ oldPassword
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(401).json({ error: "Old password is incorrect" });
+
+    // hash newPassword
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // อัปเดตรหัสผ่าน
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });

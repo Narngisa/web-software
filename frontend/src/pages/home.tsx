@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import { useNavigate } from "react-router-dom";
@@ -12,18 +12,20 @@ function Home() {
 
   const [webcamResult, setWebcamResult] = useState<string | null>(null);
   const [webcamConfidence, setWebcamConfidence] = useState<number | null>(null);
-  const [webcamLoading, setWebcamLoading] = useState<boolean>(false);
+  const [webcamLoading, setWebcamLoading] = useState(false);
 
   const [uploadResult, setUploadResult] = useState<string | null>(null);
   const [uploadConfidence, setUploadConfidence] = useState<number | null>(null);
-  const [uploadLoading, setUploadLoading] = useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const toggleDropdown = () => setShowDropdown(prev => !prev);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const loadModel = async () => {
+    (async () => {
       try {
         const loadedModel = await tf.loadLayersModel('/model/model.json');
         const metadata = await fetch('/model/metadata.json').then(res => res.json());
@@ -32,42 +34,38 @@ function Home() {
       } catch (e) {
         console.error(e);
       }
-    };
-    loadModel();
+    })();
   }, []);
 
+  // เช็ค token และดึง user info ถ้ามี token
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-
-    if (token) {
-      setIsLoggedIn(true);
-
-      fetch("http://localhost:8080/api/user", { // ใส่ URL เต็มด้วยนะ
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch user info");
-          return res.json();
-        })
-        .then(data => setUserInfo(data))
-        .catch(err => {
-          console.error(err);
-          setUserInfo(null);
-          setIsLoggedIn(false);
-        });
-    } else {
+    if (!token) {
       setIsLoggedIn(false);
       setUserInfo(null);
+      return;
     }
+
+    setIsLoggedIn(true);
+    fetch("http://localhost:8080/api/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch user info");
+        return res.json();
+      })
+      .then(setUserInfo)
+      .catch(() => {
+        setUserInfo(null);
+        setIsLoggedIn(false);
+      });
   }, []);
 
-  const classifyImage = async (image: tf.Tensor3D, isFromWebcam = false) => {
+  // ฟังก์ชัน classify รูปภาพ ใช้ memoize ด้วย useCallback
+  const classifyImage = useCallback(async (image: tf.Tensor3D, isFromWebcam = false) => {
     if (!model || labels.length === 0) return;
 
-    if (isFromWebcam) setWebcamLoading(true);
-    else setUploadLoading(true);
+    isFromWebcam ? setWebcamLoading(true) : setUploadLoading(true);
 
     try {
       const resized = tf.image.resizeBilinear(image, [224, 224]);
@@ -89,12 +87,14 @@ function Home() {
     } catch (err) {
       console.error(err);
     } finally {
-      if (isFromWebcam) setWebcamLoading(false);
-      else setUploadLoading(false);
+      isFromWebcam ? setWebcamLoading(false) : setUploadLoading(false);
     }
-  };
+  }, [model, labels]);
 
+  // ใช้ useEffect ทำ loop ตรวจจับกล้อง แค่ถ้าไม่ loading เท่านั้น
   useEffect(() => {
+    if (!model || labels.length === 0) return;
+
     const interval = setInterval(() => {
       if (
         !webcamLoading &&
@@ -105,12 +105,13 @@ function Home() {
         classifyImage(imgTensor, true);
         tf.dispose(imgTensor);
       }
-    }, 1000);
+    }, 1500); // ขยายเวลา 1.5 วิ ลดโหลด CPU
 
     return () => clearInterval(interval);
-  }, [model, labels, webcamLoading]);
+  }, [model, labels, webcamLoading, classifyImage]);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // อัปโหลดภาพและ classify
+  const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -124,14 +125,20 @@ function Home() {
     const imgTensor = tf.browser.fromPixels(canvas);
     await classifyImage(imgTensor, false);
     tf.dispose(imgTensor);
+  }, [classifyImage]);
+
+  // Logout แบบ memoized
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  }, [navigate]);
+
+  const handleGoToProfile = () => {
+    navigate('/profile');
   };
 
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-      localStorage.removeItem("authToken");
-      navigate("/login");
-  };
+  // Toggle dropdown
+  const toggleDropdown = useCallback(() => setShowDropdown(prev => !prev), []);
 
   return (
     <div className="bg-[#ff7b00] min-h-screen text-center text-white">
@@ -141,34 +148,40 @@ function Home() {
           <span className="text-xl sm:text-2xl font-bold">แหลก</span>
         </div>
         <ul className="relative flex items-center space-x-4 font-semibold text-sm sm:text-base">
-        {isLoggedIn && userInfo ? (
-          <li className="relative">
-            <button
-              onClick={toggleDropdown}
-              className="text-sm sm:text-base text-white px-4 py-2 focus:outline-none"
-            >
-              สวัสดี, {userInfo.firstname} {userInfo.lastname}
-            </button>
+          {isLoggedIn && userInfo ? (
+            <li className="relative">
+              <button
+                onClick={toggleDropdown}
+                className="text-sm sm:text-base text-white px-4 py-2 focus:outline-none"
+              >
+                สวัสดี, {userInfo.firstname} {userInfo.lastname}
+              </button>
 
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50">
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 focus:outline-none"
-                >
-                  ลงชื่อออก
-                </button>
-              </div>
-            )}
-          </li>
-        ) : (
-          <li>
-            <a href="/signup" className="bg-white px-4 py-2 rounded-lg text-black hover:bg-gray-200">
-              ลงชื่อเข้าใช้งาน
-            </a>
-          </li>
-        )}
-      </ul>
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50">
+                  <button
+                    onClick={handleGoToProfile}
+                    className="block w-full text-left px-4 py-2 text-sm rounded-lg text-black hover:bg-gray-100 focus:outline-none"
+                  >
+                    ข้อมูลผู้ใช้
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm rounded-lg text-black hover:bg-gray-100 focus:outline-none"
+                  >
+                    ลงชื่อออก
+                  </button>
+                </div>
+              )}
+            </li>
+          ) : (
+            <li>
+              <a href="/login" className="bg-white px-4 py-2 rounded-lg text-black hover:bg-gray-200 focus:outline-none">
+                ลงชื่อเข้าใช้งาน
+              </a>
+            </li>
+          )}
+        </ul>
       </nav>
 
       {/* กล้อง */}
