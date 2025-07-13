@@ -67,7 +67,7 @@ function Signup() {
 
             console.log("Response:", result);
             setErrorMessage("");
-            navigate("/logout");
+            navigate("/login");
 
         } catch (error) {
             console.error("Error", error);
@@ -76,78 +76,82 @@ function Signup() {
     };
 
     return (
-        <div className="bg-[#acdfac]">
-            <div className="grid place-items-center h-screen text-[#72bb72]">
-                <div className="bg-white rounded-lg p-16">
-                    <h1 className="text-3xl font-bold">Signup</h1>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-[25rem] mt-10">
-                        <span className="font-semibold">Username</span>
+        <div className="bg-[#991b1b]">
+            <div className="grid place-items-center min-h-screen text-black px-4 sm:px-6">
+                <div className="bg-white rounded-lg p-8 sm:p-10 md:p-16 w-full max-w-md sm:max-w-lg">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-center">Sign Up</h1>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-8">
+                        <label className="font-semibold text-sm">Username</label>
                         <input
                             onChange={(e) => setUsername(e.target.value)}
                             type="text"
                             value={username}
-                            placeholder="กรุณากรอกอีเมล"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            placeholder="กรุณากรอกชื่อผู้ใช้"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">email</span>
+                        <label className="font-semibold text-sm">Email</label>
                         <input
                             onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             value={email}
                             placeholder="กรุณากรอกอีเมล"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">Password</span>
+                        <label className="font-semibold text-sm">Password</label>
                         <input
                             onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             value={password}
                             placeholder="กรุณากรอกรหัส"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">Firstname</span>
+                        <label className="font-semibold text-sm">Firstname</label>
                         <input
                             onChange={(e) => setFirstname(e.target.value)}
                             type="text"
                             value={firstname}
                             placeholder="กรุณากรอกชื่อ"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">Lastname</span>
+                        <label className="font-semibold text-sm">Lastname</label>
                         <input
                             onChange={(e) => setLastname(e.target.value)}
                             type="text"
                             value={lastname}
                             placeholder="กรุณากรอกนามสกุล"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">Birthday</span>
+                        <label className="font-semibold text-sm">Birthday</label>
                         <input
                             onChange={(e) => setBirthday(e.target.value)}
                             type="date"
                             value={birthday}
-                            placeholder="กรุณากรอกวันเกิด"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <span className="font-semibold">Sex</span>
+                        <label className="font-semibold text-sm">Sex</label>
                         <input
                             onChange={(e) => setSex(e.target.value)}
                             type="text"
                             value={sex}
                             placeholder="กรุณากรอกเพศ (เพศตามสภาพโดยแต่กำเนิด)"
-                            className="bg-white border-2 border-[#72bb72] rounded-lg p-2 focus:outline-none"
+                            className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
+
                         {errorMessage && (
-                            <div className="text-red-500 font-semibold text-sm w-[16rem]">
+                            <div className="text-red-500 font-semibold text-sm">
                                 {errorMessage}
                             </div>
                         )}
 
-                        <button type="submit" className="font-bold rounded-lg bg-[#72bb72] text-white w-[6rem] p-3 transform transition-transform duration-300 hover:scale-105">ตกลง</button>
+                        <div className="text-sm font-semibold">
+                            <p>คุณมีบัญชีอยู่แล้ว ?<a className="px-2 text-[#991b1b] underline" href="/login">Login</a></p>
+                        </div>
+
+                        <button type="submit" className="font-bold rounded-lg bg-[#ff7b00] text-white w-full sm:w-[8rem] p-3 transform transition-transform duration-300 hover:scale-105">สร้างบัญชี</button>
                     </form>
                 </div>
             </div>
-        </div>
+            </div>
     )
 }
 
