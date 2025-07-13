@@ -130,44 +130,46 @@ function Home() {
   // Logout แบบ memoized
   const handleLogout = useCallback(() => {
     localStorage.removeItem("authToken");
-    navigate("/login");
+    navigate("/home");
+    window.location.reload(); // รีเฟรชหน้าเว็บ
   }, [navigate]);
 
   const handleGoToProfile = () => {
-    navigate('/edit-profile');
+    navigate('/profile');
   };
 
   // Toggle dropdown
   const toggleDropdown = useCallback(() => setShowDropdown(prev => !prev), []);
 
   return (
-    <div className="bg-[#ff7b00] min-h-screen text-center text-white">
-      <nav className="flex justify-between items-center p-6 bg-[#991b1b]">
-        <div>
-          <span className="text-3xl sm:text-4xl font-bold">Eat </span>
-          <span className="text-xl sm:text-2xl font-bold">แหลก</span>
+    <div className="bg-[#ff7b00] min-h-screen text-white">
+      <nav className="flex justify-between items-center p-6 bg-[#991b1b] shadow-md">
+        <div className="text-3xl font-bold">
+          Eat <span className="text-xl">แหลก</span>
         </div>
-        <ul className="relative flex items-center space-x-4 font-semibold text-sm sm:text-base">
+        <ul className="relative flex items-center space-x-4 text-sm sm:text-base font-semibold">
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/home">หน้าหลัก</a>
+          </li>
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/bmi">BMI</a>
+          </li>
           {isLoggedIn && userInfo ? (
             <li className="relative">
-              <button
-                onClick={toggleDropdown}
-                className="text-sm sm:text-base text-white px-4 py-2 focus:outline-none"
-              >
-                สวัสดี, {userInfo.firstname} {userInfo.lastname}
+              <button onClick={toggleDropdown} className="px-4 py-2 focus:outline-none">
+                สวัสดี, {userInfo.firstname}
               </button>
-
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50">
                   <button
                     onClick={handleGoToProfile}
-                    className="block w-full text-left px-4 py-2 text-sm rounded-lg text-black hover:bg-gray-100 focus:outline-none"
+                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
                   >
-                    แก้ไขข้อมูลผู้ใช้
+                    ข้อมูลผู้ใช้
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm rounded-lg text-black hover:bg-gray-100 focus:outline-none"
+                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
                   >
                     ลงชื่อออก
                   </button>
@@ -176,7 +178,10 @@ function Home() {
             </li>
           ) : (
             <li>
-              <a href="/login" className="bg-white px-4 py-2 rounded-lg text-black hover:bg-gray-200 focus:outline-none">
+              <a
+                href="/login"
+                className="px-4 py-2 focus:outline-none"
+              >
                 ลงชื่อเข้าใช้งาน
               </a>
             </li>
@@ -184,70 +189,74 @@ function Home() {
         </ul>
       </nav>
 
-      {/* กล้อง */}
-      <section className="py-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4">📷 ตรวจจับจากกล้อง</h2>
-        <div className="w-full flex justify-center px-4">
-          <Webcam
-            ref={webcamRef}
-            audio={false}
-            screenshotFormat="image/jpeg"
-            className="rounded-md shadow-md w-full max-w-xs sm:max-w-md md:max-w-lg aspect-[4/3]"
-            style={{ maxWidth: "80%" }}
-          />
-        </div>
-        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-full max-w-xs sm:max-w-sm shadow-lg min-h-[120px]">
-          {webcamLoading ? (
-            <p className="text-gray-500">กำลังประมวลผล...</p>
-          ) : webcamResult ? (
-            <>
-              <p className="text-xl sm:text-2xl text-green-700 font-semibold">
-                {webcamResult} ({(webcamConfidence! * 100).toFixed(1)}%)
-              </p>
-              {foodInfo[webcamResult] && (
-                <p className="mt-3 text-sm text-gray-700">{foodInfo[webcamResult]}</p>
-              )}
-            </>
-          ) : (
-            <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
-          )}
-        </div>
-      </section>
+      <main className="container mx-auto max-w-screen-md px-4 py-8 space-y-10">
+        {/* กล้อง */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4 text-center">📷 ตรวจจับจากกล้อง</h2>
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-screen-lg aspect-[4/3]">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                className="rounded-md shadow-md w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="bg-white text-black p-4 rounded-md shadow-md mt-4 text-center min-h-[120px]">
+            {webcamLoading ? (
+              <p className="text-gray-500">กำลังประมวลผล...</p>
+            ) : webcamResult ? (
+              <>
+                <p className="text-xl text-[#991b1b] font-semibold">
+                  {webcamResult} ({(webcamConfidence! * 100).toFixed(1)}%)
+                </p>
+                {foodInfo[webcamResult] && (
+                  <p className="mt-2 text-sm text-gray-700">{foodInfo[webcamResult]}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
+            )}
+          </div>
+        </section>
 
-      {/* อัปโหลดภาพ */}
-      <section className="py-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4">🖼 ตรวจจับจากภาพอัปโหลด</h2>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageUpload}
-          className="hidden"
-        />
-        <button
-          className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200 w-full max-w-xs sm:w-auto focus:outline-none"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          📤 อัปโหลดภาพอาหาร
-        </button>
-
-        <div className="bg-white text-black p-4 rounded-md mx-auto mt-4 w-full max-w-xs sm:max-w-sm shadow-lg min-h-[120px]">
-          {uploadLoading ? (
-            <p className="text-gray-500">กำลังประมวลผล...</p>
-          ) : uploadResult ? (
-            <>
-              <p className="text-xl sm:text-2xl text-green-700 font-semibold">
-                {uploadResult} ({(uploadConfidence! * 100).toFixed(1)}%)
-              </p>
-              {foodInfo[uploadResult] && (
-                <p className="mt-3 text-sm text-gray-700">{foodInfo[uploadResult]}</p>
-              )}
-            </>
-          ) : (
-            <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
-          )}
-        </div>
-      </section>
+        {/* อัปโหลดภาพ */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4 text-center">🖼 ตรวจจับจากภาพอัปโหลด</h2>
+          <div className="flex justify-center">
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-white text-black font-semibold px-4 py-2 rounded shadow hover:bg-gray-200"
+            >
+              📤 อัปโหลดภาพอาหาร
+            </button>
+          </div>
+          <div className="bg-white text-black p-4 rounded-md shadow-md mt-4 text-center min-h-[120px]">
+            {uploadLoading ? (
+              <p className="text-gray-500">กำลังประมวลผล...</p>
+            ) : uploadResult ? (
+              <>
+                <p className="text-xl text-green-700 font-semibold">
+                  {uploadResult} ({(uploadConfidence! * 100).toFixed(1)}%)
+                </p>
+                {foodInfo[uploadResult] && (
+                  <p className="mt-2 text-sm text-gray-700">{foodInfo[uploadResult]}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500">ยังไม่มีการตรวจจับ</p>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

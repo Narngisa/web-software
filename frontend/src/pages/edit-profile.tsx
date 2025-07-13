@@ -80,7 +80,7 @@ const EditProfile = () => {
       });
       if (!res.ok) throw new Error("Update failed");
 
-      navigate("/home");
+      navigate("/profile");
     } catch (err) {
       console.error("Update failed", err);
       setMessage("อัปเดตไม่สำเร็จ");
@@ -130,7 +130,7 @@ const EditProfile = () => {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      navigate("/home");
+      navigate("/profile");
     } catch (err: any) {
       setMessage("เกิดข้อผิดพลาด: " + err.message);
       setMessageType("error");
@@ -138,7 +138,7 @@ const EditProfile = () => {
   };
 
   const handleCancel = () => {
-    navigate("/home");
+    navigate("/profile");
   };
 
   return (
@@ -194,14 +194,14 @@ const EditProfile = () => {
             <div className="flex flex-col sm:flex-row sm:justify-around sm:items-center sm:gap-20 gap-4">
               <button
                 type="submit"
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none"
               >
                 บันทึกการเปลี่ยนแปลง
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none"
               >
                 ยกเลิก
               </button>
@@ -231,7 +231,7 @@ const EditProfile = () => {
             ))}
             <button
               type="submit"
-              className="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700"
+              className="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 focus:outline-none"
             >
               เปลี่ยนรหัสผ่าน
             </button>
