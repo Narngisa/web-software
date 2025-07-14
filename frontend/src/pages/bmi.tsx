@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 function BMI() {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('male'); // male or female
   const [bmiResult, setBmiResult] = useState<number | null>(null);
+  const [bmrResult, setBmrResult] = useState<number | null>(null);
   const [status, setStatus] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -59,13 +62,23 @@ function BMI() {
     else return 'อ้วน';
   };
 
-  const calculateBMI = (e: React.FormEvent) => {
+  const calculateBMR = (w: number, h: number, a: number, g: string) => {
+    if (g === 'male') {
+      return 10 * w + 6.25 * h - 5 * a + 5;
+    } else {
+      return 10 * w + 6.25 * h - 5 * a - 161;
+    }
+  };
+
+  const calculateBMIAndBMR = (e: React.FormEvent) => {
     e.preventDefault();
     const h = parseFloat(height);
     const w = parseFloat(weight);
+    const a = parseInt(age, 10);
 
-    if (!h || !w || h <= 0 || w <= 0) {
+    if (!h || !w || !a || h <= 0 || w <= 0 || a <= 0) {
       setBmiResult(null);
+      setBmrResult(null);
       setStatus('');
       setError('⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง');
       return;
@@ -76,6 +89,9 @@ function BMI() {
     const bmi = w / (heightInMeter * heightInMeter);
     setBmiResult(bmi);
     setStatus(interpretBMI(bmi));
+
+    const bmr = calculateBMR(w, h, a, gender);
+    setBmrResult(bmr);
   };
 
   return (
@@ -128,11 +144,11 @@ function BMI() {
         </ul>
       </nav>
 
-      {/* BMI Calculator */}
+      {/* Calculator */}
       <div className="flex flex-col justify-center items-center px-4 py-10">
         <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-black">
           <h1 className="text-3xl font-bold text-center text-[#991b1b] py-3 mb-6">
-            คำนวณค่า BMI
+            คำนวณค่า BMI และ BMR
           </h1>
 
           {error && (
@@ -141,7 +157,7 @@ function BMI() {
             </div>
           )}
 
-          <form onSubmit={calculateBMI} className="space-y-4">
+          <form onSubmit={calculateBMIAndBMR} className="space-y-4">
             <div>
               <label className="block font-semibold mb-1">ส่วนสูง (เซนติเมตร)</label>
               <input
@@ -164,18 +180,42 @@ function BMI() {
               />
             </div>
 
+            <div>
+              <label className="block font-semibold mb-1">อายุ (ปี)</label>
+              <input
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="w-full bg-white border border-[#991b1b] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+                placeholder="เช่น 30"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">เพศ</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full bg-white border border-[#991b1b] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+              >
+                <option value="male">ชาย</option>
+                <option value="female">หญิง</option>
+              </select>
+            </div>
+
             <button
               type="submit"
               className="w-full font-bold rounded-lg bg-[#991b1b] text-white py-3 transform transition-transform duration-300 hover:scale-105"
             >
-              คำนวณ BMI
+              คำนวณ BMI & BMR
             </button>
           </form>
 
-          {bmiResult !== null && (
+          {bmiResult !== null && bmrResult !== null && (
             <div className="mt-6 text-center bg-[#fef9ec] border border-[#991b1b] rounded-lg p-4 shadow-sm">
               <p className="text-xl font-bold text-[#991b1b]">BMI: {bmiResult.toFixed(2)}</p>
               <p className="mt-1 text-gray-800 text-lg">ผลลัพธ์: {status}</p>
+              <p className="mt-3 text-xl font-bold text-[#991b1b]">BMR: {bmrResult.toFixed(0)} แคลอรี่/วัน</p>
             </div>
           )}
         </div>
