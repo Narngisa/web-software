@@ -5,6 +5,7 @@ import Home from "../pages/home";
 import BMI from "../pages/bmi";
 import Profile from "../pages/profile"
 import EditProfile from '../pages/edit-profile';
+import GoalsPage from "../pages/goalsPage";
 
 const AppRouter = () => {
   return (
@@ -18,6 +19,7 @@ const AppRouter = () => {
         <Route path="/bmi" element={<BMI />} />
         <Route path="/profile" element={<Profile/>} />
         <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/goals" element={<GoalsPage />} />
       </Routes>
     </Router>
   );
