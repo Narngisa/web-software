@@ -1,34 +1,31 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
+const mysql = require("mysql2/promise");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("./models/User");
 require("dotenv").config();
 
 const jwtSecret = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 8080;
 
-if (!jwtSecret) {
-  console.error("FATAL ERROR: JWT_SECRET is not defined.");
-  process.exit(1);
-}
-
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: "http://localhost:5173", // เปลี่ยนตาม origin frontend
-  credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect('mongodb://mongo:27017/ND_db')
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection error:", err));
+// MySQL connection pool
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST || "localhost",
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  port: process.env.MYSQL_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
-// JWT Auth Middleware
+// JWT middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader?.split(" ")[1];
@@ -43,22 +40,31 @@ const authenticateToken = (req, res, next) => {
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Welcome to the backend server!");
+  res.send("Welcome to the MySQL backend server!");
 });
 
-// ─────────────────────────────────────────
-// ✅ Get current user (must be logged in)
+// Get current user
 app.get("/api/user", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select("-password");
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
+    const userId = req.user.userId;
+    const [rows] = await pool.query(
+      `SELECT id, username, email, firstname, lastname, birthday, sex, created_at
+       FROM users WHERE id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(rows[0]);
   } catch (err) {
+    console.error("Get user error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ Signup
+// Signup
 app.post("/api/signup", async (req, res) => {
   try {
     const { username, email, password, firstname, lastname, birthday, sex } = req.body;
@@ -67,24 +73,22 @@ app.post("/api/signup", async (req, res) => {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
+    const [existing] = await pool.query(
+      "SELECT id FROM users WHERE username = ? OR email = ?",
+      [username, email]
+    );
+    if (existing.length > 0) {
       return res.status(409).json({ error: "Username or email already in use." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
-      username,
-      email,
-      password: hashedPassword,
-      firstname,
-      lastname,
-      birthday,
-      sex
-    });
+    await pool.query(
+      `INSERT INTO users (username, email, password, firstname, lastname, birthday, sex)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [username, email, hashedPassword, firstname, lastname, birthday, sex]
+    );
 
-    await newUser.save();
     res.status(201).json({ message: "User registered successfully." });
   } catch (error) {
     console.error("Signup error:", error);
@@ -92,7 +96,7 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// ✅ Login
+// Login
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -101,14 +105,24 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ error: "Email and password are required." });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ error: "Invalid email or password." });
+    const [rows] = await pool.query(
+      "SELECT id, username, password FROM users WHERE email = ?",
+      [email]
+    );
 
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    const user = rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: "Invalid email or password." });
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
 
     const TOKEN = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user.id, username: user.username },
       jwtSecret,
       { expiresIn: "1h" }
     );
@@ -120,51 +134,62 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// ✅ Update user info (excluding password)
+// Update user info
 app.put("/api/user/:id", authenticateToken, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = parseInt(req.params.id);
     if (req.user.userId !== userId) {
       return res.status(403).json({ error: "Unauthorized to update this user" });
     }
 
     const { username, email, firstname, lastname, birthday, sex } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { username, email, firstname, lastname, birthday, sex },
-      { new: true, runValidators: true }
-    ).select("-password");
+    const [result] = await pool.query(
+      `UPDATE users SET username=?, email=?, firstname=?, lastname=?, birthday=?, sex=?
+       WHERE id=?`,
+      [username, email, firstname, lastname, birthday, sex, userId]
+    );
 
-    if (!updatedUser) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: "User updated successfully", user: updatedUser });
+    res.json({ message: "User updated successfully" });
   } catch (error) {
     console.error("Update user error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ Change password
+// Change password
 app.put("/api/user/:id/password", authenticateToken, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = parseInt(req.params.id);
     const { oldPassword, newPassword } = req.body;
 
     if (req.user.userId !== userId) {
       return res.status(403).json({ error: "Unauthorized to change password" });
     }
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const [rows] = await pool.query(
+      "SELECT password FROM users WHERE id = ?",
+      [userId]
+    );
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) return res.status(401).json({ error: "Old password is incorrect" });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    const isMatch = await bcrypt.compare(oldPassword, rows[0].password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Old password is incorrect" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [hashedNewPassword, userId]
+    );
 
     res.json({ message: "Password changed successfully" });
   } catch (error) {
@@ -173,7 +198,6 @@ app.put("/api/user/:id/password", authenticateToken, async (req, res) => {
   }
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -154,6 +154,9 @@ function Home() {
           <li>
             <a className='px-4 py-2 focus:outline-none' href="/bmi">BMI</a>
           </li>
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/goals">ออกกำลังกาย</a>
+          </li>
           {isLoggedIn && userInfo ? (
             <li className="relative">
               <button onClick={toggleDropdown} className="px-4 py-2 focus:outline-none">

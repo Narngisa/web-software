@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 function BMI() {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('male');
   const [bmiResult, setBmiResult] = useState<number | null>(null);
+  const [bmrResult, setBmrResult] = useState<number | null>(null);
   const [status, setStatus] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -14,7 +17,6 @@ function BMI() {
 
   const navigate = useNavigate();
 
-  // ดึง token และ userInfo
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -23,7 +25,6 @@ function BMI() {
       return;
     }
 
-    setIsLoggedIn(true);
     fetch('http://localhost:8080/api/user', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -31,16 +32,38 @@ function BMI() {
         if (!res.ok) throw new Error('Failed to fetch user info');
         return res.json();
       })
-      .then(setUserInfo)
+      .then((data) => {
+        setUserInfo(data);
+        setIsLoggedIn(true);
+
+        // คำนวณอายุจากวันเกิด
+        if (data.birthday) {
+          const birthDate = new Date(data.birthday);
+          const today = new Date();
+
+          let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          const dayDiff = today.getDate() - birthDate.getDate();
+
+          if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            calculatedAge--;
+          }
+
+          setAge(calculatedAge.toString());
+        }
+
+        if (data.gender === 'male' || data.gender === 'female') {
+          setGender(data.gender);
+        }
+      })
       .catch(() => {
-        setUserInfo(null);
         setIsLoggedIn(false);
+        setUserInfo(null);
       });
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
     window.location.reload();
   };
 
@@ -59,22 +82,45 @@ function BMI() {
     else return 'อ้วน';
   };
 
-  const calculateBMI = (e: React.FormEvent) => {
+  const calculateBMR = (w: number, h: number, a: number, g: string) => {
+    return g === 'male'
+      ? 10 * w + 6.25 * h - 5 * a + 5
+      : 10 * w + 6.25 * h - 5 * a - 161;
+  };
+
+  const calculateBMIAndBMR = (e: React.FormEvent) => {
     e.preventDefault();
     const h = parseFloat(height);
     const w = parseFloat(weight);
+    const a = parseInt(age, 10);
 
-    if (!h || !w || h <= 0 || w <= 0) {
+    if (!h || !w || !a || h <= 0 || w <= 0 || a <= 0) {
       setBmiResult(null);
+      setBmrResult(null);
       setStatus('');
       setError('⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง');
       return;
     }
 
+    const isUnrealistic =
+      (a <= 5 && (h > 120 || w > 30)) ||
+      (a <= 12 && (h > 170 || w > 60)) ||
+      (a >= 13 && h > 220) ||
+      h < 50 || w < 5;
+
+    if (isUnrealistic) {
+      setBmiResult(null);
+      setBmrResult(null);
+      setStatus('');
+      setError('⚠️ ข้อมูลที่กรอกอาจไม่สมเหตุสมผล โปรดตรวจสอบอีกครั้ง');
+      return;
+    }
+
     setError('');
-    const heightInMeter = h / 100;
-    const bmi = w / (heightInMeter * heightInMeter);
+    const bmi = w / ((h / 100) ** 2);
+    const bmr = calculateBMR(w, h, a, gender);
     setBmiResult(bmi);
+    setBmrResult(bmr);
     setStatus(interpretBMI(bmi));
   };
 
@@ -86,53 +132,31 @@ function BMI() {
           Eat <span className="text-xl">แหลก</span>
         </div>
         <ul className="relative flex items-center space-x-4 text-sm sm:text-base font-semibold">
-          <li>
-            <a className="px-4 py-2 focus:outline-none" href="/home">
-              หน้าหลัก
-            </a>
-          </li>
-          <li>
-            <a className="px-4 py-2 focus:outline-none" href="/bmi">
-              BMI
-            </a>
-          </li>
+          <li><a className="px-4 py-2" href="/home">หน้าหลัก</a></li>
+          <li><a className="px-4 py-2" href="/bmi">BMI</a></li>
           {isLoggedIn && userInfo ? (
             <li className="relative">
-              <button onClick={toggleDropdown} className="px-4 py-2 focus:outline-none">
+              <button onClick={toggleDropdown} className="px-4 py-2">
                 สวัสดี, {userInfo.firstname}
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50 text-black">
-                  <button
-                    onClick={handleGoToProfile}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:rounded-md"
-                  >
-                    ข้อมูลผู้ใช้
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:rounded-md"
-                  >
-                    ลงชื่อออก
-                  </button>
+                  <button onClick={handleGoToProfile} className="block w-full px-4 py-2 hover:bg-gray-100">ข้อมูลผู้ใช้</button>
+                  <button onClick={handleLogout} className="block w-full px-4 py-2 hover:bg-gray-100">ลงชื่อออก</button>
                 </div>
               )}
             </li>
           ) : (
-            <li>
-              <a href="/login" className="px-4 py-2 focus:outline-none">
-                ลงชื่อเข้าใช้งาน
-              </a>
-            </li>
+            <li><a href="/login" className="px-4 py-2">ลงชื่อเข้าใช้งาน</a></li>
           )}
         </ul>
       </nav>
 
-      {/* BMI Calculator */}
+      {/* Form */}
       <div className="flex flex-col justify-center items-center px-4 py-10">
         <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-black">
           <h1 className="text-3xl font-bold text-center text-[#991b1b] py-3 mb-6">
-            คำนวณค่า BMI
+            คำนวณค่า BMI และ BMR
           </h1>
 
           {error && (
@@ -141,14 +165,14 @@ function BMI() {
             </div>
           )}
 
-          <form onSubmit={calculateBMI} className="space-y-4">
+          <form onSubmit={calculateBMIAndBMR} className="space-y-4">
             <div>
               <label className="block font-semibold mb-1">ส่วนสูง (เซนติเมตร)</label>
               <input
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
-                className="w-full bg-white border border-[#991b1b] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+                className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 165"
               />
             </div>
@@ -159,23 +183,51 @@ function BMI() {
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className="w-full bg-white border border-[#991b1b] rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+                className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 55"
               />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">อายุ (ปี)</label>
+              <input
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                readOnly={isLoggedIn}
+                className={`w-full border border-[#991b1b] rounded-lg p-2 ${isLoggedIn ? 'bg-gray-100' : 'bg-white'}`}
+                placeholder="เช่น 20"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold mb-1">เพศ</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                disabled={isLoggedIn}
+                className={`w-full border border-[#991b1b] rounded-lg p-2 ${isLoggedIn ? 'bg-gray-100' : 'bg-white'}`}
+              >
+                <option value="male">ชาย</option>
+                <option value="female">หญิง</option>
+              </select>
             </div>
 
             <button
               type="submit"
               className="w-full font-bold rounded-lg bg-[#991b1b] text-white py-3 transform transition-transform duration-300 hover:scale-105"
             >
-              คำนวณ BMI
+              คำนวณ BMI & BMR
             </button>
           </form>
 
-          {bmiResult !== null && (
+          {bmiResult !== null && bmrResult !== null && (
             <div className="mt-6 text-center bg-[#fef9ec] border border-[#991b1b] rounded-lg p-4 shadow-sm">
               <p className="text-xl font-bold text-[#991b1b]">BMI: {bmiResult.toFixed(2)}</p>
               <p className="mt-1 text-gray-800 text-lg">ผลลัพธ์: {status}</p>
+              <p className="mt-3 text-xl font-bold text-[#991b1b]">
+                BMR: {bmrResult.toFixed(0)} แคลอรี่/วัน
+              </p>
             </div>
           )}
         </div>
