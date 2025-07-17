@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function BMI() {
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('male');
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("male");
   const [bmiResult, setBmiResult] = useState<number | null>(null);
   const [bmrResult, setBmrResult] = useState<number | null>(null);
-  const [status, setStatus] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -18,25 +19,24 @@ function BMI() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (!token) {
       setIsLoggedIn(false);
       setUserInfo(null);
       return;
     }
 
-    fetch('http://localhost:8080/api/user', {
+    fetch("http://localhost:8080/api/user", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch user info');
+        if (!res.ok) throw new Error("Failed to fetch user info");
         return res.json();
       })
       .then((data) => {
         setUserInfo(data);
         setIsLoggedIn(true);
 
-        // คำนวณอายุจากวันเกิด
         if (data.birthday) {
           const birthDate = new Date(data.birthday);
           const today = new Date();
@@ -52,7 +52,7 @@ function BMI() {
           setAge(calculatedAge.toString());
         }
 
-        if (data.gender === 'male' || data.gender === 'female') {
+        if (data.gender === "male" || data.gender === "female") {
           setGender(data.gender);
         }
       })
@@ -63,27 +63,35 @@ function BMI() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    window.location.reload();
+    localStorage.removeItem("authToken");
+    setShowDropdown(false);
+    setIsMenuOpen(false);
+    navigate("/login");
   };
 
   const handleGoToProfile = () => {
-    navigate('/profile');
+    setShowDropdown(false);
+    setIsMenuOpen(false);
+    navigate("/profile");
   };
 
   const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
+    setShowDropdown((prev) => !prev);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen((prev) => !prev);
   };
 
   const interpretBMI = (bmi: number) => {
-    if (bmi < 18.5) return 'ผอม';
-    else if (bmi <= 24.9) return 'น้ำหนักปกติ';
-    else if (bmi <= 29.9) return 'น้ำหนักเกิน';
-    else return 'อ้วน';
+    if (bmi < 18.5) return "ผอม";
+    else if (bmi <= 24.9) return "น้ำหนักปกติ";
+    else if (bmi <= 29.9) return "น้ำหนักเกิน";
+    else return "อ้วน";
   };
 
   const calculateBMR = (w: number, h: number, a: number, g: string) => {
-    return g === 'male'
+    return g === "male"
       ? 10 * w + 6.25 * h - 5 * a + 5
       : 10 * w + 6.25 * h - 5 * a - 161;
   };
@@ -97,8 +105,8 @@ function BMI() {
     if (!h || !w || !a || h <= 0 || w <= 0 || a <= 0) {
       setBmiResult(null);
       setBmrResult(null);
-      setStatus('');
-      setError('⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง');
+      setStatus("");
+      setError("⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง");
       return;
     }
 
@@ -106,17 +114,18 @@ function BMI() {
       (a <= 5 && (h > 120 || w > 30)) ||
       (a <= 12 && (h > 170 || w > 60)) ||
       (a >= 13 && h > 220) ||
-      h < 50 || w < 5;
+      h < 50 ||
+      w < 5;
 
     if (isUnrealistic) {
       setBmiResult(null);
       setBmrResult(null);
-      setStatus('');
-      setError('⚠️ ข้อมูลที่กรอกอาจไม่สมเหตุสมผล โปรดตรวจสอบอีกครั้ง');
+      setStatus("");
+      setError("⚠️ ข้อมูลที่กรอกอาจไม่สมเหตุสมผล โปรดตรวจสอบอีกครั้ง");
       return;
     }
 
-    setError('');
+    setError("");
     const bmi = w / ((h / 100) ** 2);
     const bmr = calculateBMR(w, h, a, gender);
     setBmiResult(bmi);
@@ -125,59 +134,118 @@ function BMI() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ff7b00] text-white">
+    <div className="min-h-screen bg-[#ff7b00] text-white flex flex-col">
       {/* Navbar */}
-      <nav className="flex justify-between items-center p-6 bg-[#991b1b] shadow-md">
-        <div className="text-3xl font-bold">
-          Eat <span className="text-xl">แหลก</span>
-        </div>
-        <ul className="relative flex items-center space-x-4 text-sm sm:text-base font-semibold">
-          <li>
-            <a className='px-4 py-2 focus:outline-none' href="/home">หน้าหลัก</a>
-          </li>
-          <li>
-            <a className='px-4 py-2 focus:outline-none' href="/bmi">BMI</a>
-          </li>
-          <li>
-            <a className='px-4 py-2 focus:outline-none' href="/goals">ออกกำลังกาย</a>
-          </li>
-          {isLoggedIn && userInfo ? (
-            <li className="relative">
-              <button onClick={toggleDropdown} className="px-4 py-2 focus:outline-none">
-                สวัสดี, {userInfo.firstname}
-              </button>
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50">
-                  <button
-                    onClick={handleGoToProfile}
-                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
-                  >
-                    ข้อมูลผู้ใช้
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
-                  >
-                    ลงชื่อออก
-                  </button>
-                </div>
+      <nav className="bg-[#991b1b] shadow-md">
+        <div className="mx-auto flex items-center justify-between p-4 sm:p-6 relative">
+          <a href="/home" className="text-2xl font-bold focus:outline-none">
+            Eat <span className="text-sm sm:text-xl">แหลก</span>
+          </a>
+
+          {/* Hamburger for mobile */}
+          <button
+            onClick={toggleMenu}
+            className="sm:hidden focus:outline-none z-50"
+            aria-label="Toggle menu"
+            type="button"
+          >
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {isMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               )}
-            </li>
-          ) : (
+            </svg>
+          </button>
+
+          {/* Menu */}
+          <ul
+            className={`
+              flex-col
+              absolute top-full left-0 right-0
+              bg-[#991b1b]
+              p-4
+              transition-transform duration-300 ease-in-out
+              sm:flex sm:flex-row sm:items-center sm:space-x-4 sm:bg-transparent sm:p-0 sm:static sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
+              ${isMenuOpen ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-20 opacity-0 pointer-events-none"}
+              z-40
+            `}
+          >
             <li>
               <a
-                href="/login"
-                className="px-4 py-2 focus:outline-none"
+                href="/home"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
               >
-                ลงชื่อเข้าใช้งาน
+                หน้าหลัก
               </a>
             </li>
-          )}
-        </ul>
+            <li>
+              <a
+                href="/bmi"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
+              >
+                BMI
+              </a>
+            </li>
+            <li>
+              <a
+                href="/goals"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
+              >
+                ออกกำลังกาย
+              </a>
+            </li>
+            {isLoggedIn && userInfo ? (
+              <li className="relative">
+                <button
+                  onClick={toggleDropdown}
+                  className="block px-3 py-2 text-white focus:outline-none rounded sm:inline-block whitespace-nowrap"
+                >
+                  สวัสดี, {userInfo.firstname}
+                </button>
+                {showDropdown && (
+                  <div className="absolute left-0 mt-2 w-26 bg-white rounded shadow z-50 text-black">
+                    <button
+                      onClick={handleGoToProfile}
+                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
+                    >
+                      ข้อมูลผู้ใช้
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
+                    >
+                      ลงชื่อออก
+                    </button>
+                  </div>
+                )}
+              </li>
+            ) : (
+              <li>
+                <a
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
+                >
+                  ลงชื่อเข้าใช้งาน
+                </a>
+              </li>
+            )}
+          </ul>
+        </div>
       </nav>
 
-      {/* Form */}
-      <div className="flex flex-col justify-center items-center px-4 py-10">
+      {/* Content */}
+      <main className="flex-grow flex flex-col justify-center items-center px-4 py-10">
         <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-black">
           <h1 className="text-3xl font-bold text-center text-[#991b1b] py-3 mb-6">
             คำนวณค่า BMI และ BMR
@@ -198,6 +266,7 @@ function BMI() {
                 onChange={(e) => setHeight(e.target.value)}
                 className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 165"
+                min="0"
               />
             </div>
 
@@ -209,6 +278,7 @@ function BMI() {
                 onChange={(e) => setWeight(e.target.value)}
                 className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 55"
+                min="0"
               />
             </div>
 
@@ -219,8 +289,11 @@ function BMI() {
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 readOnly={isLoggedIn}
-                className={`w-full border border-[#991b1b] rounded-lg p-2 ${isLoggedIn ? 'bg-gray-100' : 'bg-white'}`}
+                className={`w-full border border-[#991b1b] rounded-lg p-2 ${
+                  isLoggedIn ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                }`}
                 placeholder="เช่น 20"
+                min="0"
               />
             </div>
 
@@ -230,7 +303,9 @@ function BMI() {
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
                 disabled={isLoggedIn}
-                className={`w-full border border-[#991b1b] rounded-lg p-2 ${isLoggedIn ? 'bg-gray-100' : 'bg-white'}`}
+                className={`w-full border border-[#991b1b] rounded-lg p-2 ${
+                  isLoggedIn ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                }`}
               >
                 <option value="male">ชาย</option>
                 <option value="female">หญิง</option>
@@ -255,7 +330,7 @@ function BMI() {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
