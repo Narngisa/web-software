@@ -132,22 +132,46 @@ function BMI() {
           Eat <span className="text-xl">แหลก</span>
         </div>
         <ul className="relative flex items-center space-x-4 text-sm sm:text-base font-semibold">
-          <li><a className="px-4 py-2" href="/home">หน้าหลัก</a></li>
-          <li><a className="px-4 py-2" href="/bmi">BMI</a></li>
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/home">หน้าหลัก</a>
+          </li>
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/bmi">BMI</a>
+          </li>
+          <li>
+            <a className='px-4 py-2 focus:outline-none' href="/goals">ออกกำลังกาย</a>
+          </li>
           {isLoggedIn && userInfo ? (
             <li className="relative">
-              <button onClick={toggleDropdown} className="px-4 py-2">
+              <button onClick={toggleDropdown} className="px-4 py-2 focus:outline-none">
                 สวัสดี, {userInfo.firstname}
               </button>
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50 text-black">
-                  <button onClick={handleGoToProfile} className="block w-full px-4 py-2 hover:bg-gray-100">ข้อมูลผู้ใช้</button>
-                  <button onClick={handleLogout} className="block w-full px-4 py-2 hover:bg-gray-100">ลงชื่อออก</button>
+                <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50">
+                  <button
+                    onClick={handleGoToProfile}
+                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
+                  >
+                    ข้อมูลผู้ใช้
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-black hover:rounded-md hover:bg-gray-100 focus:outline-none"
+                  >
+                    ลงชื่อออก
+                  </button>
                 </div>
               )}
             </li>
           ) : (
-            <li><a href="/login" className="px-4 py-2">ลงชื่อเข้าใช้งาน</a></li>
+            <li>
+              <a
+                href="/login"
+                className="px-4 py-2 focus:outline-none"
+              >
+                ลงชื่อเข้าใช้งาน
+              </a>
+            </li>
           )}
         </ul>
       </nav>

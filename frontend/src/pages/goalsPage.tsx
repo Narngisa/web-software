@@ -1,110 +1,87 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function GoalsPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const navigate = useNavigate();
+  const [height, setHeight] = useState(0);
+  const [weight, setWeight] = useState(0);
+  const [age, setAge] = useState(0);
+  const [gender, setGender] = useState("male");
+  const [bmi, setBmi] = useState<number | null>(null);
+  const [bmr, setBmr] = useState<number | null>(null);
+  const [goal, setGoal] = useState("maintain");
+  const [plan, setPlan] = useState("");
 
-  // ดึง user info จาก token
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setIsLoggedIn(false);
-      setUserInfo(null);
+  const calculate = () => {
+    if (height <= 0 || weight <= 0 || age <= 0) {
+      alert("กรุณากรอกข้อมูลให้ครบและถูกต้อง");
       return;
     }
+    const bmiCalc = weight / ((height / 100) ** 2);
+    const bmrCalc =
+      gender === "male"
+        ? 10 * weight + 6.25 * height - 5 * age + 5
+        : 10 * weight + 6.25 * height - 5 * age - 161;
+    setBmi(bmiCalc);
+    setBmr(bmrCalc);
 
-    setIsLoggedIn(true);
-    fetch("http://localhost:8080/api/user", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        return res.json();
-      })
-      .then(setUserInfo)
-      .catch(() => {
-        setIsLoggedIn(false);
-        setUserInfo(null);
-      });
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("authToken");
-    navigate("/home");
-    window.location.reload();
-  }, [navigate]);
-
-  const handleGoToProfile = () => {
-    navigate("/profile");
+    let recommendation = "";
+    if (goal === "lose") {
+      recommendation = `ลดไขมัน: กินวันละประมาณ ${Math.round(bmrCalc - 500)} แคลอรี่ พร้อมคาร์ดิโอ 30 นาที 3-5 วัน/สัปดาห์`;
+    } else if (goal === "gain") {
+      recommendation = `เพิ่มกล้าม: กินวันละประมาณ ${Math.round(bmrCalc + 300)} แคลอรี่ พร้อมเวทเทรนนิ่ง 4-6 วัน/สัปดาห์`;
+    } else {
+      recommendation = `คงรูปร่าง: กินวันละประมาณ ${Math.round(bmrCalc)} แคลอรี่ พร้อมออกกำลังกายเบาๆ สม่ำเสมอ`;
+    }
+    setPlan(recommendation);
   };
 
-  const toggleDropdown = useCallback(() => setShowDropdown((prev) => !prev), []);
-
   return (
-    <div className="min-h-screen bg-[#ff7b00] text-white">
-      {/* Navbar */}
-      <nav className="flex justify-between items-center p-6 bg-[#991b1b] shadow-md">
-        <div className="text-3xl font-bold">
-          Eat <span className="text-xl">แหลก</span>
-        </div>
-        <ul className="relative flex items-center space-x-4 text-sm sm:text-base font-semibold">
-          <li>
-            <a className="px-4 py-2" href="/home">
-              หน้าหลัก
-            </a>
-          </li>
-          <li>
-            <a className="px-4 py-2" href="/bmi">
-              BMI
-            </a>
-          </li>
-          <li>
-            <a className="px-4 py-2" href="/goals">
-              ออกกำลังกาย
-            </a>
-          </li>
-          {isLoggedIn && userInfo ? (
-            <li className="relative">
-              <button onClick={toggleDropdown} className="px-4 py-2">
-                สวัสดี, {userInfo.firstname}
-              </button>
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-44 bg-white rounded shadow z-50 text-black">
-                  <button
-                    onClick={handleGoToProfile}
-                    className="block w-full px-4 py-2 hover:bg-gray-100"
-                  >
-                    ข้อมูลผู้ใช้
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full px-4 py-2 hover:bg-gray-100"
-                  >
-                    ลงชื่อออก
-                  </button>
-                </div>
-              )}
-            </li>
-          ) : (
-            <li>
-              <a href="/login" className="px-4 py-2">
-                ลงชื่อเข้าใช้งาน
-              </a>
-            </li>
-          )}
-        </ul>
-      </nav>
+    <div className="min-h-screen bg-[#ff7b00] text-white p-4">
+      <h1 className="text-3xl font-bold text-center mb-6">เป้าหมายของคุณ</h1>
 
-      {/* Content */}
-      <main className="container mx-auto max-w-screen-md px-4 py-10 text-center">
-        <h1 className="text-3xl font-bold mb-4">🎯 เป้าหมายการออกกำลังกาย</h1>
-        <p className="text-lg">หน้านี้อยู่ระหว่างพัฒนา</p>
-      </main>
+      <div className="max-w-xl mx-auto bg-white text-black p-6 rounded-xl shadow space-y-4">
+        <div>
+          <label className="block font-semibold">ส่วนสูง (ซม.)</label>
+          <input type="number" className="w-full p-2 border rounded" value={height} onChange={e => setHeight(+e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block font-semibold">น้ำหนัก (กก.)</label>
+          <input type="number" className="w-full p-2 border rounded" value={weight} onChange={e => setWeight(+e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block font-semibold">อายุ (ปี)</label>
+          <input type="number" className="w-full p-2 border rounded" value={age} onChange={e => setAge(+e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block font-semibold">เพศ</label>
+          <select className="w-full p-2 border rounded" value={gender} onChange={e => setGender(e.target.value)}>
+            <option value="male">ชาย</option>
+            <option value="female">หญิง</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block font-semibold">เป้าหมาย</label>
+          <select className="w-full p-2 border rounded" value={goal} onChange={e => setGoal(e.target.value)}>
+            <option value="lose">ลดไขมัน</option>
+            <option value="gain">เพิ่มกล้าม</option>
+            <option value="maintain">คงรูปร่าง</option>
+          </select>
+        </div>
+
+        <button onClick={calculate} className="w-full bg-[#991b1b] text-white py-2 rounded font-bold hover:bg-[#7c1515]">คำนวณ</button>
+
+        {bmi !== null && bmr !== null && (
+          <div className="mt-4 bg-[#fef9ec] border border-[#991b1b] rounded-lg p-4">
+            <p className="text-xl font-bold text-[#991b1b]">BMI: {bmi.toFixed(2)}</p>
+            <p className="text-xl font-bold text-[#991b1b]">BMR: {Math.round(bmr)} แคลอรี่/วัน</p>
+            <p className="mt-2 text-gray-800 text-base">{plan}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
