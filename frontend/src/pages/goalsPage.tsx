@@ -10,7 +10,7 @@ function GoalsPage() {
   const [height, setHeight] = useState(0);
   const [weight, setWeight] = useState(0);
   const [age, setAge] = useState(0);
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("");
   const [goal, setGoal] = useState("maintain");
   const [targetWeight, setTargetWeight] = useState(""); // เป้าหมาย กก.
   const [activityLevel, setActivityLevel] = useState("sedentary");
@@ -55,7 +55,7 @@ function GoalsPage() {
           setAge(calculatedAge);
         }
 
-        if (data.gender === "male" || data.gender === "female") {
+        if (data.gender === "ชาย" || data.gender === "หญิง") {
           setGender(data.gender);
         }
       })
@@ -97,7 +97,7 @@ function GoalsPage() {
 
     const bmiCalc = weight / ((height / 100) ** 2);
     const bmrCalc =
-      gender === "male"
+      gender === "ชาย"
         ? 10 * weight + 6.25 * height - 5 * age + 5
         : 10 * weight + 6.25 * height - 5 * age - 161;
 
@@ -293,8 +293,8 @@ function GoalsPage() {
             value={gender}
             disabled
           >
-            <option value="male">ชาย</option>
-            <option value="female">หญิง</option>
+            <option value="ชาย">ชาย</option>
+            <option value="หญิง">หญิง</option>
           </select>
         </div>
 

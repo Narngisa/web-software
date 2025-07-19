@@ -7,7 +7,7 @@ type User = {
   firstname: string;
   lastname: string;
   birthday: string;
-  sex: string;
+  gender: string;
 };
 
 function Profile() {
@@ -66,7 +66,7 @@ function Profile() {
           <ProfileItem label="ชื่อจริง" value={user.firstname} />
           <ProfileItem label="นามสกุล" value={user.lastname} />
           <ProfileItem label="วันเกิด" value={user.birthday?.split("T")[0]} />
-          <ProfileItem label="เพศ" value={user.sex} />
+          <ProfileItem label="เพศ" value={user.gender} />
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">

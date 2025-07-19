@@ -14,7 +14,7 @@ const EditProfile = () => {
     firstname: "",
     lastname: "",
     birthday: "",
-    sex: "",
+    gender: "",
   });
 
   const [oldPassword, setOldPassword] = useState("");
@@ -45,7 +45,7 @@ const EditProfile = () => {
         firstname: user.firstname || "",
         lastname: user.lastname || "",
         birthday: user.birthday ? user.birthday.split("T")[0] : "",
-        sex: user.sex || "",
+        gender: user.gender || "",
       });
     } catch (err) {
       console.error("Failed to fetch user data", err);
@@ -181,8 +181,8 @@ const EditProfile = () => {
             <div>
               <label className="block font-medium mb-1">เพศ</label>
               <select
-                name="sex"
-                value={formData.sex}
+                name="gender"
+                value={formData.gender}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
                 required

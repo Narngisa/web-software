@@ -48,7 +48,7 @@ app.get("/api/user", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const [rows] = await pool.query(
-      `SELECT id, username, email, firstname, lastname, birthday, sex, created_at
+      `SELECT id, username, email, firstname, lastname, birthday, gender, created_at
        FROM users WHERE id = ?`,
       [userId]
     );
@@ -67,9 +67,9 @@ app.get("/api/user", authenticateToken, async (req, res) => {
 // Signup
 app.post("/api/signup", async (req, res) => {
   try {
-    const { username, email, password, firstname, lastname, birthday, sex } = req.body;
+    const { username, email, password, firstname, lastname, birthday, gender } = req.body;
 
-    if (!username || !email || !password || !firstname || !lastname || !birthday || !sex) {
+    if (!username || !email || !password || !firstname || !lastname || !birthday || !gender) {
       return res.status(400).json({ error: "All fields are required." });
     }
 
@@ -84,9 +84,9 @@ app.post("/api/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
-      `INSERT INTO users (username, email, password, firstname, lastname, birthday, sex)
+      `INSERT INTO users (username, email, password, firstname, lastname, birthday, gender)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [username, email, hashedPassword, firstname, lastname, birthday, sex]
+      [username, email, hashedPassword, firstname, lastname, birthday, gender]
     );
 
     res.status(201).json({ message: "User registered successfully." });
@@ -142,12 +142,12 @@ app.put("/api/user/:id", authenticateToken, async (req, res) => {
       return res.status(403).json({ error: "Unauthorized to update this user" });
     }
 
-    const { username, email, firstname, lastname, birthday, sex } = req.body;
+    const { username, email, firstname, lastname, birthday, gender } = req.body;
 
     const [result] = await pool.query(
-      `UPDATE users SET username=?, email=?, firstname=?, lastname=?, birthday=?, sex=?
+      `UPDATE users SET username=?, email=?, firstname=?, lastname=?, birthday=?, gender=?
        WHERE id=?`,
-      [username, email, firstname, lastname, birthday, sex, userId]
+      [username, email, firstname, lastname, birthday, gender, userId]
     );
 
     if (result.affectedRows === 0) {

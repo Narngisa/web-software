@@ -9,7 +9,7 @@ function Signup() {
     const [firstname, setFirstname] = useState("");
     const [lastname, setLastname] = useState("");
     const [birthday, setBirthday] = useState("");
-    const [sex, setSex] = useState("");
+    const [gender, setGender] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
@@ -20,7 +20,7 @@ function Signup() {
         e.preventDefault();
 
         // ✅ Validate ก่อนส่งข้อมูล
-        if (!username || !email || !password || !firstname || !lastname || !birthday || !sex) {
+        if (!username || !email || !password || !firstname || !lastname || !birthday || !gender) {
         setErrorMessage("กรุณากรอกข้อมูลให้ครบทุกช่อง");
         return;
         }
@@ -48,7 +48,7 @@ function Signup() {
                     firstname,
                     lastname,
                     birthday,
-                    sex,
+                    gender,
                 }),
             });
 
@@ -128,11 +128,11 @@ function Signup() {
                             value={birthday}
                             className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <label className="font-semibold text-sm">Sex</label>
+                        <label className="font-semibold text-sm">gender</label>
                         <input
-                            onChange={(e) => setSex(e.target.value)}
+                            onChange={(e) => setGender(e.target.value)}
                             type="text"
-                            value={sex}
+                            value={gender}
                             placeholder="กรุณากรอกเพศ (เพศตามสภาพโดยแต่กำเนิด)"
                             className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
