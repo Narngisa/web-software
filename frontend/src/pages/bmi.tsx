@@ -5,7 +5,7 @@ function BMI() {
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [age, setAge] = useState("");
-  const [gender, setGender] = useState("male");
+  const [gender, setGender] = useState("");
   const [bmiResult, setBmiResult] = useState<number | null>(null);
   const [bmrResult, setBmrResult] = useState<number | null>(null);
   const [status, setStatus] = useState("");
@@ -52,7 +52,7 @@ function BMI() {
           setAge(calculatedAge.toString());
         }
 
-        if (data.gender === "male" || data.gender === "female") {
+        if (data.gender === "ชาย" || data.gender === "หญิง") {
           setGender(data.gender);
         }
       })
@@ -307,8 +307,8 @@ function BMI() {
                   isLoggedIn ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                 }`}
               >
-                <option value="male">ชาย</option>
-                <option value="female">หญิง</option>
+                <option value="ชาย">ชาย</option>
+                <option value="หญิง">หญิง</option>
               </select>
             </div>
 

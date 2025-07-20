@@ -128,7 +128,7 @@ function Signup() {
                             value={birthday}
                             className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
-                        <label className="font-semibold text-sm">gender</label>
+                        <label className="font-semibold text-sm">Gender</label>
                         <input
                             onChange={(e) => setGender(e.target.value)}
                             type="text"
