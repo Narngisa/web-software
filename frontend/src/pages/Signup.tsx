@@ -133,7 +133,7 @@ function Signup() {
                             onChange={(e) => setGender(e.target.value)}
                             type="text"
                             value={gender}
-                            placeholder="กรุณากรอกเพศ (เพศตามสภาพโดยแต่กำเนิด)"
+                            placeholder="กรุณากรอกเพศ (เพศตามสภาพโดยแต่กำเนิด) เช่น ชาย, หญิง"
                             className="bg-white border-2 border-[#ff7b00] rounded-lg p-2 focus:outline-none text-sm"
                         />
 
