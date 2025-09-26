@@ -24,7 +24,8 @@ function Profile() {
 
     const fetchUserData = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/user", {
+        const API_BASE_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_BASE_URL}/api/user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

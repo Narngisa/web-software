@@ -3,6 +3,7 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const path = require("path");
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -26,11 +27,6 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
-
-// Default route
-app.get("/", (req, res) => {
-  res.send("Welcome to the Prisma + Supabase backend!");
-});
 
 // Get current user
 app.get("/api/user", authenticateToken, async (req, res) => {
@@ -169,6 +165,14 @@ app.put("/api/user/:id/password", authenticateToken, async (req, res) => {
     console.error("Change password error:", error);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+// Serve React build (dist folder ของ Vite)
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+// Handle react-router-dom routes
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 app.listen(PORT, () => {
