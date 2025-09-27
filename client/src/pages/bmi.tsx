@@ -1,87 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 function BMI() {
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
-  const [bmiResult, setBmiResult] = useState<number | null>(null);
-  const [bmrResult, setBmrResult] = useState<number | null>(null);
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setIsLoggedIn(false);
-      setUserInfo(null);
-      return;
-    }
-
-    fetch("http://localhost:8080/api/user", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        return res.json();
-      })
-      .then((data) => {
-        setUserInfo(data);
-        setIsLoggedIn(true);
-
-        if (data.birthday) {
-          const birthDate = new Date(data.birthday);
-          const today = new Date();
-
-          let calculatedAge = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          const dayDiff = today.getDate() - birthDate.getDate();
-
-          if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-            calculatedAge--;
-          }
-
-          setAge(calculatedAge.toString());
-        }
-
-        if (data.gender === "ชาย" || data.gender === "หญิง") {
-          setGender(data.gender);
-        }
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-        setUserInfo(null);
-      });
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    setShowDropdown(false);
-    setIsMenuOpen(false);
-    navigate("/login");
-  };
-
-  const handleGoToProfile = () => {
-    setShowDropdown(false);
-    setIsMenuOpen(false);
-    navigate("/profile");
-  };
-
-  const toggleDropdown = () => {
-    setShowDropdown((prev) => !prev);
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
 
   const interpretBMI = (bmi: number) => {
     if (bmi < 18.5) return "ผอม";
@@ -91,7 +17,7 @@ function BMI() {
   };
 
   const calculateBMR = (w: number, h: number, a: number, g: string) => {
-    return g === "male"
+    return g === "ชาย"
       ? 10 * w + 6.25 * h - 5 * a + 5
       : 10 * w + 6.25 * h - 5 * a - 161;
   };
@@ -103,10 +29,11 @@ function BMI() {
     const a = parseInt(age, 10);
 
     if (!h || !w || !a || h <= 0 || w <= 0 || a <= 0) {
-      setBmiResult(null);
-      setBmrResult(null);
-      setStatus("");
-      setError("⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง");
+      Swal.fire({
+        icon: "error",
+        title: "ข้อมูลไม่ถูกต้อง",
+        text: "⚠️ กรุณากรอกข้อมูลให้ครบและถูกต้อง",
+      });
       return;
     }
 
@@ -118,23 +45,46 @@ function BMI() {
       w < 5;
 
     if (isUnrealistic) {
-      setBmiResult(null);
-      setBmrResult(null);
-      setStatus("");
-      setError("⚠️ ข้อมูลที่กรอกอาจไม่สมเหตุสมผล โปรดตรวจสอบอีกครั้ง");
+      Swal.fire({
+        icon: "warning",
+        title: "ข้อมูลอาจไม่สมเหตุสมผล",
+        text: "⚠️ โปรดตรวจสอบส่วนสูง น้ำหนัก และอายุอีกครั้ง",
+      });
       return;
     }
 
-    setError("");
-    const bmi = w / ((h / 100) ** 2);
+    const bmi = w / (h / 100) ** 2;
     const bmr = calculateBMR(w, h, a, gender);
-    setBmiResult(bmi);
-    setBmrResult(bmr);
-    setStatus(interpretBMI(bmi));
+    const status = interpretBMI(bmi);
+
+    Swal.fire({
+      title:
+        '<span style="color:#991b1b; font-size:1.5rem; font-weight:bold;">ผลลัพธ์ BMI & BMR</span>',
+      html: `
+        <p style="margin:0.5rem 0; text-align:left;"><strong>BMI (ค่าดัชนีมวลกาย):</strong> ${bmi.toFixed(
+          2
+        )} (${status})</p>
+        <p style="margin:0.5rem 0; text-align:left;"><strong>BMR (ค่าการเผาผลาญพลังงาน):</strong> ${bmr.toFixed(
+          0
+        )} แคลอรี่/วัน</p>
+      `,
+      icon: "success",
+      width: 600,
+      padding: "2rem",
+      background: "linear-gradient(to bottom, #fff7f0, #ffe5d4)",
+      confirmButtonText: "ปิด",
+      confirmButtonColor: "#ff7b00",
+      customClass: {
+        popup: "rounded-3xl shadow-2xl border border-orange-300",
+        title: "font-extrabold text-xl",
+        confirmButton:
+          "text-white font-bold py-2 px-6 rounded-xl mt-4 hover:scale-105 transition-transform duration-200",
+      },
+    });
   };
 
   return (
-    <div className="min-h-screen bg-[#ff7b00] text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-[#ff7b00] to-[#ff9f43] text-white flex flex-col">
       {/* Navbar */}
       <nav className="bg-[#991b1b] shadow-md">
         <div className="mx-auto flex items-center justify-between p-4 sm:p-6 relative">
@@ -142,9 +92,8 @@ function BMI() {
             Eat <span className="text-sm sm:text-xl">แหลก</span>
           </a>
 
-          {/* Hamburger for mobile */}
           <button
-            onClick={toggleMenu}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="sm:hidden focus:outline-none z-50"
             aria-label="Toggle menu"
             type="button"
@@ -154,28 +103,31 @@ function BMI() {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
               {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
 
-          {/* Menu */}
           <ul
-            className={`
-              flex-col
-              absolute top-full left-0 right-0
-              bg-[#991b1b]
-              p-4
-              transition-transform duration-300 ease-in-out
-              sm:flex sm:flex-row sm:items-center sm:space-x-4 sm:bg-transparent sm:p-0 sm:static sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
-              ${isMenuOpen ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-20 opacity-0 pointer-events-none"}
-              z-40
-            `}
+            className={`flex-col absolute top-full left-0 right-0 bg-[#991b1b] p-4 transition-transform duration-300 ease-in-out sm:flex sm:flex-row sm:items-center sm:space-x-4 sm:bg-transparent sm:p-0 sm:static sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto ${
+              isMenuOpen
+                ? "translate-y-0 opacity-100 pointer-events-auto"
+                : "-translate-y-20 opacity-0 pointer-events-none"
+            } z-40`}
           >
             <li>
               <a
@@ -204,109 +156,59 @@ function BMI() {
                 ออกกำลังกาย
               </a>
             </li>
-            {isLoggedIn && userInfo ? (
-              <li className="relative">
-                <button
-                  onClick={toggleDropdown}
-                  className="block px-3 py-2 text-white focus:outline-none rounded sm:inline-block whitespace-nowrap"
-                >
-                  สวัสดี, {userInfo.firstname}
-                </button>
-                {showDropdown && (
-                  <div className="absolute left-0 mt-2 w-26 bg-white rounded shadow z-50 text-black">
-                    <button
-                      onClick={handleGoToProfile}
-                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
-                    >
-                      ข้อมูลผู้ใช้
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
-                    >
-                      ลงชื่อออก
-                    </button>
-                  </div>
-                )}
-              </li>
-            ) : (
-              <li>
-                <a
-                  href="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-                >
-                  ลงชื่อเข้าใช้งาน
-                </a>
-              </li>
-            )}
           </ul>
         </div>
       </nav>
 
-      {/* Content */}
-      <main className="flex-grow flex flex-col justify-center items-center px-4 py-10">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-black">
-          <h1 className="text-3xl font-bold text-center text-[#991b1b] py-3 mb-6">
-            คำนวณค่า BMI และ BMR
+      {/* Main */}
+      <main className="flex-grow w-full flex justify-center items-center px-4 py-12">
+        <div className="w-full max-w-md bg-gradient-to-br from-white via-orange-50 to-white rounded-3xl shadow-2xl p-10 text-black border border-orange-200">
+          <h1 className="text-3xl font-extrabold text-center mb-8 text-[#991b1b] drop-shadow-lg">
+            คำนวณค่า BMI & BMR
           </h1>
 
-          {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm text-center shadow">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={calculateBMIAndBMR} className="space-y-4">
-            <div>
-              <label className="block font-semibold mb-1">ส่วนสูง (เซนติเมตร)</label>
+          <form className="space-y-6" onSubmit={calculateBMIAndBMR}>
+            <div className="flex flex-col">
+              <label className="font-semibold mb-2 text-[#7a1414]">ส่วนสูง (ซม.)</label>
               <input
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
-                className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 165"
-                min="0"
+                className="w-full p-4 border border-orange-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 transition-all duration-200"
               />
             </div>
 
-            <div>
-              <label className="block font-semibold mb-1">น้ำหนัก (กิโลกรัม)</label>
+            <div className="flex flex-col">
+              <label className="font-semibold mb-2 text-[#7a1414]">น้ำหนัก (กก.)</label>
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className="w-full border border-[#991b1b] rounded-lg p-2"
                 placeholder="เช่น 55"
-                min="0"
+                className="w-full p-4 border border-orange-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 transition-all duration-200"
               />
             </div>
 
-            <div>
-              <label className="block font-semibold mb-1">อายุ (ปี)</label>
+            <div className="flex flex-col">
+              <label className="font-semibold mb-2 text-[#7a1414]">อายุ (ปี)</label>
               <input
                 type="number"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                readOnly={isLoggedIn}
-                className={`w-full border border-[#991b1b] rounded-lg p-2 ${
-                  isLoggedIn ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                }`}
                 placeholder="เช่น 20"
-                min="0"
+                className="w-full p-4 border border-orange-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder-gray-400 transition-all duration-200"
               />
             </div>
 
-            <div>
-              <label className="block font-semibold mb-1">เพศ</label>
+            <div className="flex flex-col">
+              <label className="font-semibold mb-2 text-[#7a1414]">เพศ</label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                disabled={isLoggedIn}
-                className={`w-full border border-[#991b1b] rounded-lg p-2 ${
-                  isLoggedIn ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                }`}
+                className="w-full p-4 border border-orange-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all duration-200"
               >
+                <option value="">-- เลือกเพศ --</option>
                 <option value="ชาย">ชาย</option>
                 <option value="หญิง">หญิง</option>
               </select>
@@ -314,21 +216,11 @@ function BMI() {
 
             <button
               type="submit"
-              className="w-full font-bold rounded-lg bg-[#991b1b] text-white py-3 transform transition-transform duration-300 hover:scale-105"
+              className="w-full mt-6 bg-gradient-to-r from-[#991b1b] to-[#ff7b00] text-white py-4 rounded-3xl font-extrabold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200"
             >
               คำนวณ BMI & BMR
             </button>
           </form>
-
-          {bmiResult !== null && bmrResult !== null && (
-            <div className="mt-6 text-center bg-[#fef9ec] border border-[#991b1b] rounded-lg p-4 shadow-sm">
-              <p className="text-xl font-bold text-[#991b1b]">BMI: {bmiResult.toFixed(2)}</p>
-              <p className="mt-1 text-gray-800 text-lg">ผลลัพธ์: {status}</p>
-              <p className="mt-3 text-xl font-bold text-[#991b1b]">
-                BMR: {bmrResult.toFixed(0)} แคลอรี่/วัน
-              </p>
-            </div>
-          )}
         </div>
       </main>
     </div>
