@@ -112,7 +112,7 @@ function Home() {
             href="/home"
             className="text-2xl font-extrabold text-white tracking-wide hover:text-yellow-300 transition-colors duration-300"
           >
-            Eat <span className="text-sm sm:text-xl font-light">แหลก</span>
+            Eat <span className="text-sm sm:text-xl font-light">แหลกรู้ไหมกี่ </span>Cal
           </a>
 
           {/* Hamburger (มือถือเท่านั้น) */}
