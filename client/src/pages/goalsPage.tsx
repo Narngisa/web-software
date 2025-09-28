@@ -129,24 +129,28 @@ function GoalsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#ff7b00] to-[#ff9f43] text-white flex flex-col">
       {/* Navbar */}
-      <nav className="bg-[#991b1b] shadow-md">
-        <div className="mx-auto flex items-center justify-between p-4 sm:p-6 relative">
-          <a href="/home" className="text-2xl font-bold focus:outline-none">
-            Eat <span className="text-sm sm:text-xl">แหลก</span>
+      <nav className="backdrop-blur-md bg-[#991b1b]/90 shadow-lg sticky top-0 z-50">
+        <div className="mx-auto flex items-center justify-between px-6 py-3">
+          {/* โลโก้ */}
+          <a
+            href="/home"
+            className="text-2xl font-extrabold text-white tracking-wide hover:text-yellow-300 transition-colors duration-300"
+          >
+            Eat <span className="text-sm sm:text-xl font-light">แหลก</span>
           </a>
 
+          {/* Hamburger (มือถือเท่านั้น) */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="sm:hidden focus:outline-none z-50"
+            className="sm:hidden focus:outline-none z-50 p-2 rounded-md hover:bg-white/20 transition-colors"
             aria-label="Toggle menu"
             type="button"
           >
             <svg
-              className="w-6 h-6 text-white"
+              className="w-7 h-7 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
               {isMenuOpen ? (
                 <path
@@ -166,42 +170,37 @@ function GoalsPage() {
             </svg>
           </button>
 
+          {/* เมนู */}
           <ul
-            className={`flex-col absolute top-full left-0 right-0 bg-[#991b1b] p-4 transition-transform duration-300 ease-in-out
-            sm:flex sm:flex-row sm:items-center sm:space-x-4 sm:bg-transparent sm:p-0 sm:static sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
-            ${
-              isMenuOpen
-                ? "translate-y-0 opacity-100 pointer-events-auto"
-                : "-translate-y-20 opacity-0 pointer-events-none"
-            } z-40`}
+            className={`
+        flex-col absolute top-full left-0 right-0 bg-[#991b1b]/95 rounded-b-xl shadow-md px-6 py-4
+        transform transition-all duration-300 ease-in-out
+        sm:static sm:flex sm:flex-row sm:items-center sm:space-x-8 sm:bg-transparent sm:shadow-none sm:rounded-none sm:p-0
+        ${
+          isMenuOpen
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-5 opacity-0 pointer-events-none sm:opacity-100 sm:translate-y-0 sm:pointer-events-auto"
+        }
+        z-40
+      `}
           >
-            <li>
-              <a
-                href="/home"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                หน้าหลัก
-              </a>
-            </li>
-            <li>
-              <a
-                href="/bmi"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                BMI
-              </a>
-            </li>
-            <li>
-              <a
-                href="/goals"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                ออกกำลังกาย
-              </a>
-            </li>
+            {[
+              { href: "/home", label: "หน้าหลัก" },
+              { href: "/bmi", label: "BMI" },
+              { href: "/goals", label: "ออกกำลังกาย" },
+            ].map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="relative block px-3 py-2 text-white font-medium transition-colors duration-200 hover:text-yellow-300 sm:px-2 sm:py-1"
+                >
+                  {item.label}
+                  {/* underline effect */}
+                  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
       </nav>
