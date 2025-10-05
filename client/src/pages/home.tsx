@@ -106,7 +106,7 @@ function Home() {
     <div className="bg-gradient-to-b from-[#ff7b00] to-[#ff9f43] min-h-screen text-white flex flex-col">
       {/* Navbar */}
       <nav className="backdrop-blur-md bg-[#991b1b]/90 shadow-lg sticky top-0 z-50">
-        <div className="mx-auto flex items-center justify-between px-6 py-3">
+        <div className="mx-auto flex items-center justify-between px-6 py-6">
           {/* โลโก้ */}
           <a
             href="/home"
