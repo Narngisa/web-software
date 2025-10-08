@@ -1,8 +1,7 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import Webcam from 'react-webcam';
-import * as tf from '@tensorflow/tfjs';
-import { useNavigate } from "react-router-dom";
-import { foodInfo } from '../data/foodInfo';
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import Webcam from "react-webcam";
+import * as tf from "@tensorflow/tfjs";
+import { foodInfo } from "../data/foodInfo";
 
 function Home() {
   const webcamRef = useRef<Webcam>(null);
@@ -18,18 +17,15 @@ function Home() {
   const [uploadConfidence, setUploadConfidence] = useState<number | null>(null);
   const [uploadLoading, setUploadLoading] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       try {
-        const loadedModel = await tf.loadLayersModel('/model/model.json');
-        const metadata = await fetch('/model/metadata.json').then(res => res.json());
+        const loadedModel = await tf.loadLayersModel("/model/model.json");
+        const metadata = await fetch("/model/metadata.json").then((res) =>
+          res.json()
+        );
         setModel(loadedModel);
         setLabels(metadata.labels || []);
       } catch (e) {
@@ -38,57 +34,36 @@ function Home() {
     })();
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setIsLoggedIn(false);
-      setUserInfo(null);
-      return;
-    }
+  const classifyImage = useCallback(
+    async (image: tf.Tensor3D, isFromWebcam = false) => {
+      if (!model || labels.length === 0) return;
+      isFromWebcam ? setWebcamLoading(true) : setUploadLoading(true);
 
-    setIsLoggedIn(true);
-    fetch("http://localhost:8080/api/user", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        return res.json();
-      })
-      .then(setUserInfo)
-      .catch(() => {
-        setUserInfo(null);
-        setIsLoggedIn(false);
-      });
-  }, []);
+      try {
+        const resized = tf.image.resizeBilinear(image, [224, 224]);
+        const normalized = resized.div(255).expandDims(0);
 
-  const classifyImage = useCallback(async (image: tf.Tensor3D, isFromWebcam = false) => {
-    if (!model || labels.length === 0) return;
+        const prediction = model.predict(normalized) as tf.Tensor;
+        const data = await prediction.data();
+        const highestIndex = data.indexOf(Math.max(...data));
 
-    isFromWebcam ? setWebcamLoading(true) : setUploadLoading(true);
+        if (isFromWebcam) {
+          setWebcamResult(labels[highestIndex]);
+          setWebcamConfidence(data[highestIndex]);
+        } else {
+          setUploadResult(labels[highestIndex]);
+          setUploadConfidence(data[highestIndex]);
+        }
 
-    try {
-      const resized = tf.image.resizeBilinear(image, [224, 224]);
-      const normalized = resized.div(255).expandDims(0);
-
-      const prediction = model.predict(normalized) as tf.Tensor;
-      const data = await prediction.data();
-      const highestIndex = data.indexOf(Math.max(...data));
-
-      if (isFromWebcam) {
-        setWebcamResult(labels[highestIndex]);
-        setWebcamConfidence(data[highestIndex]);
-      } else {
-        setUploadResult(labels[highestIndex]);
-        setUploadConfidence(data[highestIndex]);
+        tf.dispose([resized, normalized, prediction]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        isFromWebcam ? setWebcamLoading(false) : setUploadLoading(false);
       }
-
-      tf.dispose([resized, normalized, prediction]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      isFromWebcam ? setWebcamLoading(false) : setUploadLoading(false);
-    }
-  }, [model, labels]);
+    },
+    [model, labels]
+  );
 
   useEffect(() => {
     if (!model || labels.length === 0) return;
@@ -108,62 +83,50 @@ function Home() {
     return () => clearInterval(interval);
   }, [model, labels, webcamLoading, classifyImage]);
 
-  const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleImageUpload = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    const imageBitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    canvas.width = imageBitmap.width;
-    canvas.height = imageBitmap.height;
-    const ctx = canvas.getContext('2d');
-    ctx?.drawImage(imageBitmap, 0, 0);
+      const imageBitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = imageBitmap.width;
+      canvas.height = imageBitmap.height;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(imageBitmap, 0, 0);
 
-    const imgTensor = tf.browser.fromPixels(canvas);
-    await classifyImage(imgTensor, false);
-    tf.dispose(imgTensor);
-  }, [classifyImage]);
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("authToken");
-    navigate("/home");
-    window.location.reload();
-  }, [navigate]);
-
-  const handleGoToProfile = () => {
-    navigate('/profile');
-    setShowDropdown(false);
-    setIsMenuOpen(false);
-  };
-
-  const toggleDropdown = useCallback(() => setShowDropdown(prev => !prev), []);
+      const imgTensor = tf.browser.fromPixels(canvas);
+      await classifyImage(imgTensor, false);
+      tf.dispose(imgTensor);
+    },
+    [classifyImage]
+  );
 
   return (
-    <div className="bg-[#ff7b00] min-h-screen text-white">
-      <nav className="bg-[#991b1b] shadow-md">
-        <div className="mx-auto flex items-center justify-between p-4 sm:p-6 relative">
-          <div className="text-2xl font-bold">
-            <a className='focus:outline-none' href="/home">
-              Eat <span className="text-sm sm:text-xl">แหลก</span>
-            </a>
-          </div>
+    <div className="bg-gradient-to-b from-[#ff7b00] to-[#ff9f43] min-h-screen text-white flex flex-col">
+      {/* Navbar */}
+      <nav className="backdrop-blur-md bg-[#991b1b]/90 shadow-lg sticky top-0 z-50">
+        <div className="mx-auto flex items-center justify-between px-6 py-6">
+          {/* โลโก้ */}
+          <a
+            href="/home"
+            className="text-2xl font-extrabold text-white tracking-wide hover:text-yellow-300 transition-colors duration-300"
+          >
+            Eat <span className="text-sm sm:text-xl font-light">แหลกรู้ไหมกี่ </span>Cal
+          </a>
 
-          {/* ปุ่ม hamburger */}
+          {/* Hamburger (มือถือเท่านั้น) */}
           <button
-            onClick={() => {
-              setIsMenuOpen(!isMenuOpen);
-              console.log('Toggle menu:', !isMenuOpen);
-            }}
-            className="sm:hidden focus:outline-none z-50"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="sm:hidden focus:outline-none z-50 p-2 rounded-md hover:bg-white/20 transition-colors"
             aria-label="Toggle menu"
             type="button"
           >
             <svg
-              className="w-6 h-6 text-white"
+              className="w-7 h-7 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
               {isMenuOpen ? (
                 <path
@@ -183,100 +146,49 @@ function Home() {
             </svg>
           </button>
 
-          {/* เมนูหลัก */}
+          {/* เมนู */}
           <ul
             className={`
-              flex-col
-              absolute top-full left-0 right-0
-              bg-[#991b1b]
-              p-4
-              transition-transform duration-300 ease-in-out
-              sm:flex sm:flex-row sm:items-center sm:space-x-4 sm:bg-transparent sm:p-0 sm:static sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
-              ${isMenuOpen ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-20 opacity-0 pointer-events-none'}
-              z-40
-            `}
+        flex-col absolute top-full left-0 right-0 bg-[#991b1b]/95 rounded-b-xl shadow-md px-6 py-4
+        transform transition-all duration-300 ease-in-out
+        sm:static sm:flex sm:flex-row sm:items-center sm:space-x-8 sm:bg-transparent sm:shadow-none sm:rounded-none sm:p-0
+        ${
+          isMenuOpen
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-5 opacity-0 pointer-events-none sm:opacity-100 sm:translate-y-0 sm:pointer-events-auto"
+        }
+        z-40
+      `}
           >
-            <li>
-              <a
-                href="/home"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                หน้าหลัก
-              </a>
-            </li>
-            <li>
-              <a
-                href="/bmi"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                BMI
-              </a>
-            </li>
-            <li>
-              <a
-                href="/goals"
-                onClick={() => setIsMenuOpen(false)}
-                className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
-              >
-                ออกกำลังกาย
-              </a>
-            </li>
-            {isLoggedIn && userInfo ? (
-              <li className="relative">
-                <button
-                  onClick={() => {
-                    toggleDropdown();
-                    // ไม่ต้องปิดเมนู hamburger ตอนกดปุ่มนี้
-                    // setIsMenuOpen(false);
-                  }}
-                  className="block px-3 py-2 text-white focus:outline-none rounded sm:inline-block whitespace-nowrap"
-                >
-                  สวัสดี, {userInfo.firstname}
-                </button>
-                {showDropdown && (
-                  <div className="absolute left-0 mt-2 w-26 bg-white rounded shadow z-50 text-black">
-                    <button
-                      onClick={handleGoToProfile}
-                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
-                    >
-                      ข้อมูลผู้ใช้
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowDropdown(false);
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 rounded hover:bg-gray-100 focus:outline-none"
-                    >
-                      ลงชื่อออก
-                    </button>
-                  </div>
-                )}
-              </li>
-            ) : (
-              <li>
+            {[
+              { href: "/home", label: "หน้าหลัก" },
+              { href: "/bmi", label: "BMI" },
+              { href: "/goals", label: "ออกกำลังกาย" },
+            ].map((item) => (
+              <li key={item.href}>
                 <a
-                  href="/login"
+                  href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2 text-white hover:bg-[#7a1414] rounded sm:inline-block focus:outline-none"
+                  className="relative block px-3 py-2 text-white font-medium transition-colors duration-200 hover:text-yellow-300 sm:px-2 sm:py-1"
                 >
-                  ลงชื่อเข้าใช้งาน
+                  {item.label}
+                  {/* underline effect */}
+                  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
                 </a>
               </li>
-            )}
+            ))}
           </ul>
         </div>
       </nav>
 
-      <main className="container mx-auto max-w-screen-md px-4 py-8 space-y-10">
+      <main className="container mx-auto max-w-screen-md px-4 py-10 space-y-10">
         {/* กล้อง */}
         <section>
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">📷 ตรวจจับจากกล้อง</h2>
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-full sm:max-w-screen-lg aspect-[4/3] rounded-md overflow-hidden">
+          <h2 className="text-2xl font-extrabold mb-4 text-center text-white drop-shadow-lg">
+            📷 ตรวจจับจากกล้อง
+          </h2>
+          <div className="flex justify-center">
+            <div className="w-full max-w-full sm:max-w-screen-lg aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
               <Webcam
                 ref={webcamRef}
                 audio={false}
@@ -285,27 +197,33 @@ function Home() {
               />
             </div>
           </div>
-          <div className="bg-white text-black p-4 rounded-md shadow-md mt-4 text-center min-h-[120px]">
+          <div className="bg-gradient-to-br from-white via-orange-50 to-white text-black p-6 rounded-3xl shadow-2xl mt-4 text-center min-h-[140px]">
             {webcamLoading ? (
               <p className="text-gray-500">กำลังประมวลผล...</p>
             ) : webcamResult ? (
               <>
-                <p className="text-xl sm:text-2xl text-[#991b1b] font-semibold">
+                <p className="text-2xl sm:text-3xl text-[#991b1b] font-extrabold">
                   {webcamResult} ({(webcamConfidence! * 100).toFixed(1)}%)
                 </p>
                 {foodInfo[webcamResult] && (
-                  <p className="mt-2 text-sm sm:text-base text-gray-700">{foodInfo[webcamResult]}</p>
+                  <p className="mt-2 text-gray-700 text-sm sm:text-base">
+                    {foodInfo[webcamResult]}
+                  </p>
                 )}
               </>
             ) : (
-              <p className="text-gray-500 text-sm sm:text-base">ยังไม่มีการตรวจจับ</p>
+              <p className="text-gray-500 text-sm sm:text-base">
+                ยังไม่มีการตรวจจับ
+              </p>
             )}
           </div>
         </section>
 
         {/* อัปโหลดภาพ */}
         <section>
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">🖼 ตรวจจับจากภาพอัปโหลด</h2>
+          <h2 className="text-2xl font-extrabold mb-4 text-center text-white drop-shadow-lg">
+            🖼 ตรวจจับจากภาพอัปโหลด
+          </h2>
           <div className="flex justify-center">
             <input
               type="file"
@@ -316,25 +234,31 @@ function Home() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-white text-black font-semibold px-3 sm:px-4 py-2 rounded shadow hover:bg-gray-200 text-sm sm:text-base w-full sm:w-auto focus:outline-none"
+              className="bg-gradient-to-r from-[#991b1b] to-[#ff7b00] text-white font-extrabold px-6 py-3 rounded-3xl shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200"
             >
               📤 อัปโหลดภาพอาหาร
             </button>
           </div>
-          <div className="bg-white text-black p-4 rounded-md shadow-md mt-4 text-center min-h-[120px]">
+          <div className="bg-gradient-to-br from-white via-orange-50 to-white text-black p-6 rounded-3xl shadow-2xl mt-4 text-center min-h-[140px]">
             {uploadLoading ? (
-              <p className="text-gray-500 text-sm sm:text-base">กำลังประมวลผล...</p>
+              <p className="text-gray-500 text-sm sm:text-base">
+                กำลังประมวลผล...
+              </p>
             ) : uploadResult ? (
               <>
-                <p className="text-xl sm:text-2xl text-green-700 font-semibold">
+                <p className="text-2xl sm:text-3xl text-green-700 font-extrabold">
                   {uploadResult} ({(uploadConfidence! * 100).toFixed(1)}%)
                 </p>
                 {foodInfo[uploadResult] && (
-                  <p className="mt-2 text-sm sm:text-base text-gray-700">{foodInfo[uploadResult]}</p>
+                  <p className="mt-2 text-gray-700 text-sm sm:text-base">
+                    {foodInfo[uploadResult]}
+                  </p>
                 )}
               </>
             ) : (
-              <p className="text-gray-500 text-sm sm:text-base">ยังไม่มีการตรวจจับ</p>
+              <p className="text-gray-500 text-sm sm:text-base">
+                ยังไม่มีการตรวจจับ
+              </p>
             )}
           </div>
         </section>
