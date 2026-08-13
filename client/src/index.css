@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-kanit: 'Kanit', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  body {
+    font-family: var(--font-kanit);
+    background-color: #0f0a0a;
+    color: #ffffff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom glass and gradient effects */
+.glass-orange-red {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(251, 146, 60, 0.25);
+}
+
+.dark-glass-nav {
+  background: rgba(153, 27, 27, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(251, 146, 60, 0.2);
+}
+
+/* Animation utilities */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(234, 88, 12, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(220, 38, 38, 0.55);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1c0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #ea580c, #dc2626);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #f97316, #ef4444);
+}
